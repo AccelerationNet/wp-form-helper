@@ -9,18 +9,15 @@ $RECAPTCHAED = false;
 
 
 function value_label($name, $idx=0, $no_default=false){
-  global $FORM_CONTROLS;
-  $ctl = @$FORM_CONTROLS[prep_name($name)];
-  $ctl = @$ctl[$idx];
+  $ctl = get_control($name, $idx);
   $it = @$ctl->value_label;
   if($it) return trim($it);
   if($no_default) return null;
   return rval($name);
 }
+
 function input_label($name, $idx=0, $no_default=false){
-  global $FORM_CONTROLS;
-  $ctl = @$FORM_CONTROLS[prep_name($name)];
-  $ctl = @$ctl[$idx];
+  $ctl = get_control($name, $idx);
   $it = @$ctl->text;
   $n = @$ctl->name;
   if($it) return trim($it);
@@ -84,11 +81,13 @@ function &add_control( $name, &$atts, $text=null, $type=null){
 
 // read a file, process its shortcodes and include them result here inline
 function wp_include($pth){
+  global $WP_INCLUDES;
   if(@$WP_INCLUDES[$pth]) echo @$WP_INCLUDES[$pth];
   else echo do_shortcode(file_get_contents($pth, FILE_USE_INCLUDE_PATH));
 }
 
 function wp_preprocess($pth){
+  global $WP_INCLUDES;
   $WP_INCLUDES[$pth]= do_shortcode(file_get_contents($pth, FILE_USE_INCLUDE_PATH));
 }
 
@@ -416,6 +415,28 @@ function template_radio($atts, $text=NULL){
 }
 add_shortcode('radio', 'template_radio');
 
+function template_option($atts, $text=NULL){
+  extract(sc_atts_for_env(array(
+    'name'=>null,
+    'value'=>NULL,
+    'selected'=>false,
+  ), $atts));
+  $atts = atts_string($atts);
+  if (is_null($value) && $text )$value = trim($text);
+  $selected =(!is_null($value) && rval($name) == $value) || (is_null(rval($name)) && $selected);
+  $atts .= " value=\"$value\"";
+  if(!$text) $text = $value;
+  if($selected) {
+    add_control($name, $atts, $text, 'select');
+    $atts .= " selected=\"selected\"";
+  }
+  $text = do_shortcode($text);
+  $out ="<option $atts>$text</option>";
+  return $out;
+}
+add_shortcode('option', 'template_option');
+
+
 //This accepts a test which should be the name a single global variable,
 // or a single function call
 if ( !function_exists('template_if') ) {
@@ -509,24 +530,6 @@ function validEmail($email)
    }
    return $isValid;
 }
+/*  */
 
-function template_option($atts, $text=NULL){
-  extract(sc_atts_for_env(array(
-    'name'=>null,
-    'value'=>NULL,
-    'selected'=>false,
-  ), $atts));
-  $atts = atts_string($atts);
-  if (is_null($value) && $text )$value = trim($text);
-  $selected =(!is_null($value) && rval($name) == $value) || (is_null(rval($name)) && $selected);
-  $atts .= " value=\"$value\"";
-  if(!$text) $text = $value;
-  if($selected) {
-    add_control($name, $atts, $text, 'select');
-    $atts .= " selected=\"selected\"";
-  }
-  $text = do_shortcode($text);
-  $out ="<option $atts>$text</option>";
-  return $out;
-}
-add_shortcode('option', 'template_option');
+?>
