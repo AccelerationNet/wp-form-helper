@@ -303,7 +303,7 @@ function template_input($atts, $text=null){
     'type'=>'text',
     'class'=>null,
     'note'=>null,
-    'default'=>null,
+    'default'=>null
   ), $atts));
   $vatt = "";
   if(!$name) $name = trim($text);
@@ -329,19 +329,37 @@ function template_password($atts , $text=null){
 add_shortcode('password', 'template_password');
 
 function template_checkbox($atts , $text=null){
-  add_control($name, $atts, $text, 'checkbox');
-  $atts['type'] = 'checkbox';
-  $atts['__skip_value'] = true;
+  extract(sc_atts_for_env(array(
+    'name'=>null,
+    'type'=>'checkbox',
+    'class'=>null,
+    'note'=>null,
+  ), $atts));
   $t = trim($text);
   if(!isset($atts['value'])) $atts['value'] = $t;
+  $value = $atts['value'];
   $name = $atts['name'];
-  $atts['name'].='[]';
   $rv = rval($name, false);
-  if(isset($rv) && is_array($rv) && in_array($t, $rv)){
+  if(isset($rv) && is_array($rv) && in_array($value, $rv)
+     || ($rv == $value)){
     $atts['checked'] = 'checked';
   }
+  $atts['class'] = @$atts['class'] . " checkbox-holder";
   // echo 'CHECK: '.$atts['name'].' '; print_r(rval($name));
-  return template_input($atts, $text);
+  validate_field($name, $atts, null, $text);
+  $css = programatic_classes($name);
+  add_control($name, $atts, $text, 'checkbox');
+
+  if($note){
+    $note="<span class=\"note\">$note</span>";
+    unset($atts['note']);
+  }
+  $atts = atts_string($atts);  
+  return "<label class=\"checkbox-holder $css $class\">
+     <input type=\"$type\" name=\"$name\" $atts />
+     <span class=\"text\">$text</span>
+     $note
+   </label>";
 }
 add_shortcode('checkbox', 'template_checkbox');
 
