@@ -314,9 +314,10 @@ function template_input($atts, $text=null){
   add_control($name, $atts, $text, 'input');
   $atts = atts_string($atts);
   if($note)$note="<span class=\"note\">$note</span>";
-  return "
-   <label class=\"$css $class\"><span class=\"text\">$text</span>
-     <input type=\"$type\" name=\"$name\" $vatt $atts />$note
+  $input = "<input type=\"$type\" name=\"$name\" $vatt $atts />";
+  if($type=='hidden') return $input;
+  return "<label class=\"$css $class\"><span class=\"text\">$text</span>
+     $input $note
    </label>";
 }
 add_shortcode('text', 'template_input');
