@@ -54,10 +54,10 @@ function template_recaptcha(){
 add_shortcode('recaptcha', 'template_recaptcha');
 */
 class FormControl{
-  var $name=null, $atts=null, $type=null, $text=null, $value_text=null;
+  var $name=null, $atts=null, $type=null, $text=null, $value_label=null;
   var $fields=null;
   function FormControl($args=Array()){
-    $this->fields=Array('name', 'atts', 'type', 'text', 'value_text');
+    $this->fields=Array('name', 'atts', 'type', 'text', 'value_label');
     foreach($this->fields as $name) $this->{$name}=@$args[$name];
     if(!$this->type) $this->type = @$this->atts['type'];
   }
@@ -456,14 +456,21 @@ function template_option($atts, $text=NULL){
     'name'=>null,
     'value'=>NULL,
     'selected'=>false,
+    'label'=>null,
   ), $atts));
   $atts = atts_string($atts);
   if (is_null($value) && $text )$value = trim($text);
   $selected =(!is_null($value) && rval($name) == $value) || (is_null(rval($name)) && $selected);
   $atts .= " value=\"$value\"";
   if(!$text) $text = $value;
+  if(!$label) $label = $name;
+  $ctl = &get_control($name);
+  if(!$ctl){
+    $ctl = &add_control($name, $atts, $label, 'select');
+  }
   if($selected) {
-    add_control($name, $atts, $text, 'select');
+    $ctl->value_label = $text;
+    $ctl->text = $label;
     $atts .= " selected=\"selected\"";
   }
   $text = do_shortcode($text);
