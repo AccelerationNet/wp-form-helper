@@ -339,7 +339,6 @@ function template_checkbox($atts , $text=null){
   $t = trim($text);
   if(!isset($atts['value'])) $atts['value'] = $t;
   $value = $atts['value'];
-  $name = $atts['name'];
   $rv = rval($name, false);
   if(isset($rv) && is_array($rv) && in_array($value, $rv)
      || ($rv == $value)){
