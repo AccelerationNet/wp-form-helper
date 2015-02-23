@@ -67,7 +67,7 @@ function get_control($name, $index=null){
   global $FORM_CONTROLS;
   $ctls = @$FORM_CONTROLS[prep_name($name)];
   if($index===null) return $ctls;
-  return $ctls[$index];
+  return @$ctls[$index];
 }
 
 function &add_control( $name, &$atts, $text=null, $type=null){
