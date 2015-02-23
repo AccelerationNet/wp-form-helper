@@ -54,10 +54,10 @@ function template_recaptcha(){
 add_shortcode('recaptcha', 'template_recaptcha');
 */
 class FormControl{
-  var $name=null, $atts=null, $type=null, $text=null, $value_text=null;
+  var $name=null, $atts=null, $type=null, $text=null, $value_label=null;
   var $fields=null;
   function FormControl($args=Array()){
-    $this->fields=Array('name', 'atts', 'type', 'text', 'value_text');
+    $this->fields=Array('name', 'atts', 'type', 'text', 'value_label');
     foreach($this->fields as $name) $this->{$name}=@$args[$name];
     if(!$this->type) $this->type = @$this->atts['type'];
   }
@@ -303,7 +303,7 @@ function template_input($atts, $text=null){
     'type'=>'text',
     'class'=>null,
     'note'=>null,
-    'default'=>null,
+    'default'=>null
   ), $atts));
   $vatt = "";
   if(!$name) $name = trim($text);
@@ -311,12 +311,13 @@ function template_input($atts, $text=null){
   if(rval($name)) $atts["value"] = rval($name);
   if($default && !@$atts["value"]) $atts["value"] = $default;
   $css = programatic_classes($name);
-  add_control($name, $atts, $text);
+  add_control($name, $atts, $text, 'input');
   $atts = atts_string($atts);
   if($note)$note="<span class=\"note\">$note</span>";
-  return "
-   <label class=\"$css $class\"><span class=\"text\">$text</span>
-     <input type=\"$type\" name=\"$name\" $vatt $atts />$note
+  $input = "<input type=\"$type\" name=\"$name\" $vatt $atts />";
+  if($type=='hidden') return $input;
+  return "<label class=\"$css $class\"><span class=\"text\">$text</span>
+     $input $note
    </label>";
 }
 add_shortcode('text', 'template_input');
@@ -327,6 +328,40 @@ function template_password($atts , $text=null){
   return template_input($atts, $text);
 }
 add_shortcode('password', 'template_password');
+
+function template_checkbox($atts , $text=null){
+  extract(sc_atts_for_env(array(
+    'name'=>null,
+    'type'=>'checkbox',
+    'class'=>null,
+    'note'=>null,
+  ), $atts));
+  $t = trim($text);
+  if(!isset($atts['value'])) $atts['value'] = $t;
+  $value = $atts['value'];
+  $rv = rval($name, false);
+  if(isset($rv) && is_array($rv) && in_array($value, $rv)
+     || ($rv == $value)){
+    $atts['checked'] = 'checked';
+  }
+  $atts['class'] = @$atts['class'] . " checkbox-holder";
+  // echo 'CHECK: '.$atts['name'].' '; print_r(rval($name));
+  validate_field($name, $atts, null, $text);
+  $css = programatic_classes($name);
+  add_control($name, $atts, $text, 'checkbox');
+
+  if($note){
+    $note="<span class=\"note\">$note</span>";
+    unset($atts['note']);
+  }
+  $atts = atts_string($atts);  
+  return "<label class=\"checkbox-holder $css $class\">
+     <input type=\"$type\" name=\"$name\" $atts />
+     <span class=\"text\">$text</span>
+     $note
+   </label>";
+}
+add_shortcode('checkbox', 'template_checkbox');
 
 function template_textarea($atts, $text=null){
   extract(sc_atts_for_env(array(
@@ -420,14 +455,21 @@ function template_option($atts, $text=NULL){
     'name'=>null,
     'value'=>NULL,
     'selected'=>false,
+    'label'=>null,
   ), $atts));
   $atts = atts_string($atts);
   if (is_null($value) && $text )$value = trim($text);
   $selected =(!is_null($value) && rval($name) == $value) || (is_null(rval($name)) && $selected);
   $atts .= " value=\"$value\"";
   if(!$text) $text = $value;
+  if(!$label) $label = $name;
+  $ctl = &get_control($name);
+  if(!$ctl){
+    $ctl = &add_control($name, $atts, $label, 'select');
+  }
   if($selected) {
-    add_control($name, $atts, $text, 'select');
+    $ctl->value_label = $text;
+    $ctl->text = $label;
     $atts .= " selected=\"selected\"";
   }
   $text = do_shortcode($text);
