@@ -393,7 +393,7 @@ function template_bool_radio($atts, $text=null){
   $natt = "";
   if (!is_null(r_bool($name))) $value = r_bool($name);
   $value = to_bool($value);
-  $ctl = &add_control($name, $atts, $text, 'bool_radio');
+  $ctl = add_control($name, $atts, $text, 'bool_radio');
   if (!is_null($value) && $value){
     $yatt = " checked=\"checked\"";
     $ctl->value_label = $true_text;
@@ -437,7 +437,7 @@ function template_radio($atts, $text=NULL){
   if($id) $atts["id"] =  $id;
   if(!$text) $text = $value;
   $text = do_shortcode($text);
-  $ctl = &add_control($name, $atts, null, 'radio');
+  $ctl = add_control($name, $atts, null, 'radio');
   if($checked) $ctl->value_label = $text;
   $atts = atts_string($atts);
   $css = programatic_classes($id);
@@ -463,9 +463,9 @@ function template_option($atts, $text=NULL){
   $atts .= " value=\"$value\"";
   if(!$text) $text = $value;
   if(!$label) $label = $name;
-  $ctl = &get_control($name);
+  $ctl = get_control($name);
   if(!$ctl){
-    $ctl = &add_control($name, $atts, $label, 'select');
+    $ctl = add_control($name, $atts, $label, 'select');
   }
   if($selected) {
     $ctl->value_label = $text;
