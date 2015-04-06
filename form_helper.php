@@ -8,8 +8,22 @@ $RECAPTCHAED = false;
 
 
 
-function value_label($name, $idx=0, $no_default=false){
+function value_label($name, $idx=null, $no_default=false){
   $ctl = get_control($name, $idx);
+  if(!ctl) return rval($name);
+  if(is_array($ctl)){
+    if(count($ctl)==1) $ctl = $ctl[0];
+    else{
+      foreach($ctl as $c){
+        $sel = @$c->atts['checked'];
+        if(!$sel)$sel = @$c->atts['selected'];
+        if($sel){
+            $ctl = $c;
+            break;
+        }
+      }
+    }
+  }
   $it = @$ctl->value_label;
   if($it) return trim($it);
   if($no_default) return null;
