@@ -1,7 +1,6 @@
 <?php
    /**
-   * Template Name: Atlanta 2015 Registration Template
-   * The template for displaying the Atlanta 2015 event registration
+   * Template Name: Registration Template
    *
    * This is the template that displays all pages by default.
    * Please note that this is the WordPress construct of pages
@@ -40,7 +39,7 @@ require_once('signups.php');
 
 // Builds our form model, handles validation and custom classes
 // Allows us to validate before rendering
-wp_preprocess(get_stylesheet_directory().'/atlanta2015.wp');
+wp_preprocess(get_stylesheet_directory().'/wp-form-helper/examples/form.wp');
 
    // if this is a valid form submission
    if (is_postback() && valid_page()){
@@ -84,7 +83,7 @@ wp_preprocess(get_stylesheet_directory().'/atlanta2015.wp');
        // print any validation errors        
        print_validation_errors();
        // render the form content
-       wp_include(get_stylesheet_directory().'/form.wp');
+       wp_include(get_stylesheet_directory().'/wp-form-helper/examples/form.wp');
        ?>
 
 
