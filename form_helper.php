@@ -10,7 +10,7 @@ $RECAPTCHAED = false;
 
 function value_label($name, $idx=null, $no_default=false){
   $ctl = get_control($name, $idx);
-  if(!ctl) return rval($name);
+  if(!$ctl) return rval($name);
   if(is_array($ctl)){
     if(count($ctl)==1) $ctl = $ctl[0];
     else{
