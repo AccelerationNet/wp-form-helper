@@ -1,0 +1,46 @@
+<!--
+ This is a template file that defines the form
+ it uses wordpress shortcodes to insert form fields into the content.
+-->
+<div class="form">
+  <p>Example Signup Form</p>
+  <form method="post" class="signup-form" action="">
+    [input name=your-first-name required=true]First Name[/input]
+    [input name=your-last-name required=true]Last Name[/input]
+    [input name=your-email required=true]Email Address[/input]
+    [input name=company required=true]Company[/input]
+    [input name=address required=true]Address[/input]
+    [input name=address2]Address 2[/input]
+    [input name=city required=true]City[/input]
+    [input name=state required=true]State[/input]
+    [input name=zip required=true]Zip[/input]
+    [input name=phone required=true]Business Phone[/input]
+    <br /><div class="kill-float"></div>
+
+    <div class="member-type">
+      [if test="beforeDate('2015-05-01')"]
+        [radio name="Registration Type" required=true value=199 checked=true  ]
+          $199 Very Early MEMBER (non-vendor) Registration through April 30[/radio]
+      [/if]
+      [if test="!beforeDate('2015-05-01') && beforeDate('2015-06-01')"]
+        [radio name="Registration Type" required=true value=299 checked=true  ]
+          $299 Early MEMBER (non-vendor) Registration through May 31.[/radio]
+      [/if]
+      [if test="!beforeDate('2015-06-01')"]
+        [radio name="Registration Type" required=true value=399 checked=true  ]
+          $399 MEMBER (non-vendor) Registration.[/radio]
+      [/if]
+      [radio name="Registration Type" required=true value=595   ]
+        $595 GUEST (non-vendor, non-member) includes attendance for one and MEMBERSHIP through May 2016.[/radio]
+
+    <div class="payment-type"><h4 class="text">Payment type</h4>
+      [radio name="Payment Type" value=paypal required=true checked=checked ]Paypal or Credit Card[/radio]
+      [radio name="Payment Type" value=card-on-file required=true ]Card on File (FISPA Members Only)[/radio]
+    </div>
+
+    <input type="submit" class="wpcf7-submit" value="Register for Example">
+
+    [input type=hidden name=registering-for value="Example" ][/input]
+
+  </form>
+</div>
