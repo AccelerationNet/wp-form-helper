@@ -517,7 +517,9 @@ function validDate($v){
   return $d !== false;
 }
 
-
+function validUSAPhone($phone){
+  return preg_match('/^((\+\d{1,3}(-| |\.|\/)?\(?\d\)?(-| |\.|\/)?\d{1,3})|(\(?\d{2,3}\)?))(-| |\.|\/)?(\d{3,4})(-| |\.)?(\d{4})( ?(x|ext)\.? ?\d{1,5})?$/', $phone);
+}
 // Validate an email address.
 // Provide email address (raw input)
 // Returns true if the email address has the email 
