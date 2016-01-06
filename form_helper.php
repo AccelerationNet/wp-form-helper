@@ -226,12 +226,23 @@ function r_meets_requirements( $name ){
 function to_bool($val){
   if($val === true || $val === false || $val === null) return $val;
   $val = strtolower($val);
-  $val = $val == 'on' || $val == 'yes' || $val == 'true' || $val == '1';
-  return $val;
+  if($val == 'on' || $val == 'yes' || $val == 'true' || $val == '1')
+    return true;
+  return intval($val)>0;
 }
 
+if ( !function_exists('r_bool') ) {
 // Gets a value from the request and to_bools it
-function r_bool( $name ){ return to_bool(rval($name)); }
+  function r_bool( $name ){ return to_bool(rval($name)); }
+}
+if ( !function_exists('r_int') ) {
+// Gets a value from the request and to_bools it
+  function r_int( $name ){ return intval(rval($name)); }
+}
+if ( !function_exists('r_float') ) {
+  // Gets a value from the request and to_bools it
+  function r_float( $name ){ return floatval(rval($name)); }
+}
 
 // Gets a value from the request as a date and returns 
 // it or null if something failed
@@ -399,6 +410,8 @@ function template_bool_radio($atts, $text=null){
   extract(sc_atts_for_env(array(
     'true_text'=>"Yes",
     'false_text'=>"No",
+    'true_value'=>'1',
+    'false_value'=>'0',
     'name'=>null,
     'value'=>null
   ), $atts));
@@ -421,8 +434,8 @@ function template_bool_radio($atts, $text=null){
     $text = "<h5>$text</h5>";
   }
   return "<div class=\"bool holder $css\">$text
-    <label><input type=\"radio\" value=\"1\" name=\"$name\" $yatt/>$true_text</label>
-    <label><input type=\"radio\" value=\"0\" name=\"$name\" $natt/>$false_text</label>
+    <label><input type=\"radio\" value=\"$true_value\" name=\"$name\" $yatt/>$true_text</label>
+    <label><input type=\"radio\" value=\"$false_value\" name=\"$name\" $natt/>$false_text</label>
     <div class=\"kill-float\"></div></div>";
 }
 add_shortcode('bool_radio', 'template_bool_radio');
