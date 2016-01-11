@@ -1,0 +1,3 @@
+[submodule "Simple-Ajax-Uploader"]
+	path = Simple-Ajax-Uploader
+	url = git@github.com:LPology/Simple-Ajax-Uploader.git

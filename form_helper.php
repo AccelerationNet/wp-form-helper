@@ -522,6 +522,81 @@ if ( !function_exists('template_if') ) {
   add_shortcode('if', 'template_if');
 }
 
+if ( !function_exists('template_display') ) {
+  function template_display($atts , $text=null){
+    $var = @$atts['value'];
+    if($var){
+      $s = "\$val = $var;";
+      // if this is a var ref declare it global;
+      if (strpos($var, '$') !== false) $s = "global $var;$s";
+      $val = null;
+      eval($s);
+    }
+    return do_shortcode($text).do_shortcode($val);
+  }
+  add_shortcode('display', 'template_display');
+}
+
+
+
+function wpfh_enqueue_scripts(){
+  $root = get_stylesheet_directory_uri();
+  wp_register_script('form-helper-upload.js', $root.'/wp-form-helper/form-helper-upload.js', Array('jquery'));
+
+  wp_enqueue_script('form-helper-upload.js');
+  wp_localize_script('form-helper-upload.js', 'WPFH_CFG', Array('ajax_url'=>admin_url('admin-ajax.php')));
+}
+add_action('wp_enqueue_scripts', 'wpfh_enqueue_scripts');
+
+
+function ajax_file_upload_handler(){
+  echo "Uploading";
+  //check_ajax_referer('ajax_file_nonce', 'security');
+  if(!(is_array($_POST) && is_array($_FILES))){
+    return;
+  }
+  if(!function_exists('wp_handle_upload')){
+    require_once(ABSPATH . 'wp-admin/includes/file.php');
+  }
+  
+  $upload_overrides = array('test_form' => false);
+
+  $response = array('file_url'=>'');
+  $ups = wp_upload_dir();
+  define('UPLOADS', $ups['path'].'/mushroom_reports');
+  foreach($_FILES as $file){
+    echo "DOING ".$file;
+    $file_info = wp_handle_upload($file, $upload_overrides);
+    // do something with the file info...
+    $response['file_url'] = $file_info['url'];
+  }
+  header('Content-type: application/json');
+  echo json_encode($response);
+  die();
+}
+
+add_action('wp_ajax_wpfh_file_upload', 'ajax_file_upload_handler');
+add_action('wp_ajax_nopriv_wpfh_file_upload', 'ajax_file_upload_handler');
+
+function template_ajax_upload ($atts, $text=null){
+  extract(sc_atts_for_env(array(
+    'name'=>null
+  ), $atts));
+
+  $att_str = atts_string($atts);
+  add_control($name, $atts, $text, 'file');
+  $out  ="";
+  $out .= '<div class="file-upload wpfh-ajax-upload"><label><span class="text">'.$text.'</span>';
+  if( ($v = rval($name)) ){
+    $out .= "<img src='$v'/> <input type='hidden' name='$name' val='$v'>";
+  } 
+  $out .= '<input type="file" name="'.$name.'" '.$att_str.' />';
+  $out .='</label></div>';
+  return $out;
+}
+
+add_shortcode('ajax_upload', 'template_ajax_upload');
+
 // Is this a valid date?
 function validDate($v){
   try{
