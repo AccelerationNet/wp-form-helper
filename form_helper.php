@@ -6,8 +6,6 @@ $WP_INCLUDES = Array();
 $FORM_CONTROLS = Array();
 $RECAPTCHAED = false;
 
-
-
 function value_label($name, $idx=null, $no_default=false){
   $ctl = get_control($name, $idx);
   if(!$ctl) return rval($name);
