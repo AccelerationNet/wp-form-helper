@@ -539,8 +539,8 @@ if ( !function_exists('template_display') ) {
 
 function wpfh_enqueue_scripts(){
   $root = get_stylesheet_directory_uri();
-  wp_register_script('form-helper-upload.js', $root.'/wp-form-helper/form-helper-upload.js', Array('jquery'));
-
+  wp_register_script('simpleuploader', $root.'/wp-form-helper/Simple-Ajax-Uploader/SimpleAjaxUploader.js');
+  wp_register_script('form-helper-upload.js', $root.'/wp-form-helper/form-helper-upload.js', Array('jquery', 'simpleuploader'));
   wp_enqueue_script('form-helper-upload.js');
   wp_localize_script('form-helper-upload.js', 'WPFH_CFG', Array('ajax_url'=>admin_url('admin-ajax.php')));
 }
@@ -548,25 +548,25 @@ add_action('wp_enqueue_scripts', 'wpfh_enqueue_scripts');
 
 
 function ajax_file_upload_handler(){
-  echo "Uploading";
-  //check_ajax_referer('ajax_file_nonce', 'security');
+  // TODO: rate limit, and apply better security measures
+  check_ajax_referer("wpfh-ajax-image-upload", 'nonce');
   if(!(is_array($_POST) && is_array($_FILES))){
     return;
   }
   if(!function_exists('wp_handle_upload')){
     require_once(ABSPATH . 'wp-admin/includes/file.php');
   }
-  
   $upload_overrides = array('test_form' => false);
-
   $response = array('file_url'=>'');
-  $ups = wp_upload_dir();
-  define('UPLOADS', $ups['path'].'/mushroom_reports');
+  $folder = 'wpfh';
+  if(@$_REQUEST['upload_to'])  $folder = $_REQUEST['upload_to'];
+  $folder = preg_replace('/\.\.\//','',$folder);
+  define( 'UPLOADS', 'wp-content/uploads/'. $folder );
   foreach($_FILES as $file){
-    echo "DOING ".$file;
     $file_info = wp_handle_upload($file, $upload_overrides);
     // do something with the file info...
-    $response['file_url'] = $file_info['url'];
+    $response['file_url'] = @$file_info['url'];
+    $response['nonce'] = wp_create_nonce( "wpfh-ajax-image-upload" );
   }
   header('Content-type: application/json');
   echo json_encode($response);
@@ -578,7 +578,9 @@ add_action('wp_ajax_nopriv_wpfh_file_upload', 'ajax_file_upload_handler');
 
 function template_ajax_upload ($atts, $text=null){
   extract(sc_atts_for_env(array(
-    'name'=>null
+    'name'=>null,
+    'buttontext'=>null,
+    'upload_to'=>null
   ), $atts));
 
   $att_str = atts_string($atts);
@@ -586,9 +588,11 @@ function template_ajax_upload ($atts, $text=null){
   $out  ="";
   $out .= '<div class="file-upload wpfh-ajax-upload"><label><span class="text">'.$text.'</span>';
   if( ($v = rval($name)) ){
-    $out .= "<img src='$v'/> <input type='hidden' name='$name' val='$v'>";
-  } 
-  $out .= '<input type="file" name="'.$name.'" '.$att_str.' />';
+    $out .= "<div class='uploaded-file'><img src='$v'/> <input type='hidden' name='$name' val='$v'></div>";
+  }
+  if(!$buttontext) $buttontext = "Choose File";
+  $nonce = wp_create_nonce( "wpfh-ajax-image-upload" );
+  $out .= "<button class=\"upload-btn\" data-nonce=\"$nonce\" data-upload_to=\"$upload_to\" name=\"$name\" $att_str >$buttontext</button>";
   $out .='</label></div>';
   return $out;
 }
