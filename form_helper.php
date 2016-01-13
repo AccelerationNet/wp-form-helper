@@ -565,10 +565,12 @@ function ajax_file_upload_handler(){
   foreach($_FILES as $file){
     $file_info = wp_handle_upload($file, $upload_overrides);
     // do something with the file info...
-    $response['file_url'] = @$file_info['url'];
+    $url = @$file_info['url'];
+    $url = preg_replace('/https?:\/\/[^\/]+/','',$url);
+    $response['file_url'] = $url;
     $response['nonce'] = wp_create_nonce( "wpfh-ajax-image-upload" );
   }
-  header('Content-type: application/json');
+  header('Content-type: application/json'); 
   echo json_encode($response);
   die();
 }
@@ -587,13 +589,16 @@ function template_ajax_upload ($atts, $text=null){
   add_control($name, $atts, $text, 'file');
   $out  ="";
   $out .= '<div class="file-upload wpfh-ajax-upload"><label><span class="text">'.$text.'</span>';
-  if( ($v = rval($name)) ){
-    $out .= "<div class='uploaded-file'><img src='$v'/> <input type='hidden' name='$name' val='$v'></div>";
-  }
+
   if(!$buttontext) $buttontext = "Choose File";
   $nonce = wp_create_nonce( "wpfh-ajax-image-upload" );
-  $out .= "<button class=\"upload-btn\" data-nonce=\"$nonce\" data-upload_to=\"$upload_to\" name=\"$name\" $att_str >$buttontext</button>";
-  $out .='</label></div>';
+  $out .= "<button class=\"upload-btn\" data-name=\"$name\" data-nonce=\"$nonce\" data-upload_to=\"$upload_to\" $att_str >$buttontext</button>";
+  $out .='</label>';
+  if( ($v = rval($name)) ){
+    $img = "<img src='$v'/>";
+    $out .= "<div class='uploaded-file'><a href='$v'>$img</a><input type='hidden' name='$name' value='$v'></div>";
+  }
+  $out .='</div>';
   return $out;
 }
 

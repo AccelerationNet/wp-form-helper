@@ -4,8 +4,8 @@ if(window.WPFH == undefined) window.WPFH={};
   WPFH.uploading =0;
   WPFH.ajaxUploadReplacer = function(el){
     el =$(el);
-    var name = el.attr('name');
     var btn = el.find('.upload-btn');
+    var name = btn.data('name');
     var upload = new ss.SimpleUpload({
       button: btn,
       name:'file',
