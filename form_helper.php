@@ -65,6 +65,17 @@ function template_recaptcha(){
 }
 add_shortcode('recaptcha', 'template_recaptcha');
 */
+
+function wpfh_eval($str){
+  if(!$str) return "";
+  $s = "\$val = $str;";
+  // if this is a str ref declare it global;
+  if (strpos($str, '$') !== false) $s = "global $str;$s";
+  $val = null;
+  eval($s);
+  return $val;
+}
+
 class FormControl{
   var $name=null, $atts=null, $type=null, $text=null, $value_label=null;
   var $fields=null;
@@ -326,7 +337,8 @@ function template_input($atts, $text=null){
     'type'=>'text',
     'class'=>null,
     'note'=>null,
-    'default'=>null
+    'default'=>null,
+    'editable'=>null,
   ), $atts));
   $vatt = "";
   if(!$name) $name = trim($text);
@@ -335,10 +347,14 @@ function template_input($atts, $text=null){
   if($default && !@$atts["value"]) $atts["value"] = $default;
   $css = programatic_classes($name);
   add_control($name, $atts, $text, 'input');
+  $val = @$atts['value'];
   $atts = atts_string($atts);
   if($note)$note="<span class=\"note\">$note</span>";
   $input = "<input type=\"$type\" name=\"$name\" $vatt $atts />";
   if($type=='hidden') return $input;
+  if($editable && !wpfh_eval($editable)){
+    $input = '<span class="value">'.$val.'</span>';
+  }
   return "<label class=\"$css $class\"><span class=\"text\">$text</span>
      $input $note
    </label>";
@@ -488,10 +504,7 @@ function template_option($atts, $text=NULL){
   $atts .= " value=\"$value\"";
   if(!$text) $text = $value;
   if(!$label) $label = $name;
-  $ctl = get_control($name);
-  if(!$ctl){
-    $ctl = add_control($name, $atts, $label, 'select');
-  }
+  $ctl = add_control($name, $atts, $label, 'select');
   if($selected) {
     $ctl->value_label = $text;
     $ctl->text = $label;
@@ -503,21 +516,47 @@ function template_option($atts, $text=NULL){
 }
 add_shortcode('option', 'template_option');
 
+function template_label($atts , $body=null){
+    extract(sc_atts_for_env(array(
+        'name'=>NULL,
+        'label'=>null,
+        'text'=>false,
+    ), $atts));
+    $atts = atts_string($atts);
+    if(!$label) $label = $text;
+    if(!$label) $label = $name;
+    $body = do_shortcode($body);
+    return "<label $atts><span class='text'>$label</span>$body</label>";
+}
+add_shortcode('label', 'template_label');
 
 //This accepts a test which should be the name a single global variable,
 // or a single function call
 if ( !function_exists('template_if') ) {
   function template_if($atts , $text=null){
-    $var = $atts['test'];
-    $s = "\$val = $var;";
-    // if this is a var ref declare it global;
-    if (strpos($var, '$') !== false) $s = "global $var;$s";
-    $val = null;
-    eval($s);
-    if($val) return do_shortcode($text);
-    else return "";
+    $val = wpfh_eval(@$atts['test']);
+    global $thisiftest, $thiselseres;
+    $thisiftest = $val ? true : false;
+    $thiselseres = null;
+    $out = do_shortcode($text);
+    if(!$val) $out = $thiselseres;
+    $thisiftest = null;
+    $thiselseres = null;
+    return $out;
   }
   add_shortcode('if', 'template_if');
+  add_shortcode('if2', 'template_if');
+  add_shortcode('if3', 'template_if');
+}
+if ( !function_exists('template_else') ) {
+  function template_else($atts , $text=null){
+      global $thisiftest, $thiselseres;
+      if($thisiftest===false){
+          $thiselseres = do_shortcode($text);
+      }
+      return "";
+  }
+  add_shortcode('else', 'template_else');
 }
 
 if ( !function_exists('template_display') ) {
