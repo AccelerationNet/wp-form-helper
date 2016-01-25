@@ -316,6 +316,8 @@ function validate_field($name, &$atts, $id=null, $text=null){
     'error_message'=>null,
   ), $atts));
   if(!$text) $text = $name;
+  // TODO: make this work
+  if(@$atts['editable'] && !wpfh_eval($atts['editable'])) $required=false;
   if($required) $REQUIREDS[] = $name;
   if(is_postback()){
     $check = true;
@@ -535,13 +537,11 @@ add_shortcode('label', 'template_label');
 if ( !function_exists('template_if') ) {
   function template_if($atts , $text=null){
     $val = wpfh_eval(@$atts['test']);
-    global $thisiftest, $thiselseres;
-    $thisiftest = $val ? true : false;
-    $thiselseres = null;
-    $out = do_shortcode($text);
-    if(!$val) $out = $thiselseres;
-    $thisiftest = null;
-    $thiselseres = null;
+    global $thisiftest;
+    if(!$thisiftest)$thisiftest = Array();
+    $thisiftest[] = $val ? true : false;
+    $out="";
+    if($val)$out = do_shortcode($text);
     return $out;
   }
   add_shortcode('if', 'template_if');
@@ -550,11 +550,13 @@ if ( !function_exists('template_if') ) {
 }
 if ( !function_exists('template_else') ) {
   function template_else($atts , $text=null){
-      global $thisiftest, $thiselseres;
-      if($thisiftest===false){
-          $thiselseres = do_shortcode($text);
-      }
-      return "";
+    global $thisiftest;
+    $out = "";
+    if(array_pop($thisiftest)===false){
+      $out = do_shortcode($text);
+      $thisiftest=null;
+    }
+    return $out;
   }
   add_shortcode('else', 'template_else');
 }
