@@ -619,6 +619,25 @@ function ajax_file_upload_handler(){
 add_action('wp_ajax_wpfh_file_upload', 'ajax_file_upload_handler');
 add_action('wp_ajax_nopriv_wpfh_file_upload', 'ajax_file_upload_handler');
 
+function wpfh_get_img_thumbnail($imgurl){
+  if(!$imgurl) return null;
+  $pi = pathinfo($imgurl);
+  $thname =  $pi['filename']."_th.".$pi['extension'];
+  $base = ABSPATH;
+  $pth = $base.$imgurl;
+  $th_pth = $base.$pi['dirname'].'/'.$thname;
+  if(file_exists($th_pth)) return $th_pth;
+  $img = wp_get_image_editor($pth);
+  //echo $pth."<br>\r\n".$th_pth."<br>\r\n".$thname."<br>\r\n";
+  if ( ! is_wp_error( $img ) ) {
+    $img->resize(300, 300, false);
+    $img->save( $th_pth );
+  }else {
+    return null;
+  }
+  return $th_pth;
+}
+
 function template_ajax_upload ($atts, $text=null){
   extract(sc_atts_for_env(array(
     'name'=>null,
@@ -636,7 +655,8 @@ function template_ajax_upload ($atts, $text=null){
   $out .= "<button class=\"upload-btn\" data-name=\"$name\" data-nonce=\"$nonce\" data-upload_to=\"$upload_to\" $att_str >$buttontext</button>";
   $out .='</label>';
   if( ($v = rval($name)) ){
-    $img = "<img src='$v'/>";
+    $th = wpfh_get_img_thumbnail($v);
+    $img = "<img src='$th'/>";
     $out .= "<div class='uploaded-file'><a href='$v'>$img</a><input type='hidden' name='$name' value='$v'></div>";
   }
   $out .='</div>';
