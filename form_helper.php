@@ -316,8 +316,6 @@ function validate_field($name, &$atts, $id=null, $text=null){
     'error_message'=>null,
   ), $atts));
   if(!$text) $text = $name;
-  // TODO: make this work
-  if(@$atts['editable'] && !wpfh_eval($atts['editable'])) $required=false;
   if($required) $REQUIREDS[] = $name;
   if(is_postback()){
     $check = true;
@@ -325,11 +323,11 @@ function validate_field($name, &$atts, $id=null, $text=null){
     if($required) $check &= r_meets_requirements($name);
     if(!$check) return mark_invalid($id, "$text is required, please fill in a value");
     if($regex && $v) $check &= preg_match($regex, $v);
-    if($validation && $v) $check &= $validation($v);
+    if($validation) $check &= $validation($v);
     // Validation functions may wish to put messages directly in
     if(!$check && !is_invalid($id))
       mark_invalid($id, ($error_message ? $error_message
-			 : "Please correct $name and try again"));
+		       : "Please correct $name and try again"));
   }
 }
 
