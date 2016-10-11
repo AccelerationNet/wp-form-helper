@@ -139,21 +139,38 @@ if ( !function_exists('prep_name') ) {
 }
 
 if ( !function_exists('prepped_dict_value') ) {
-  function prepped_dict_value($name, $dict, $implode=true){
-    $v = isset($dict[$name]) ? $dict[$name] : null;
-    if(!$v){
-      $name = prep_name($name);
-      $v = isset($dict[$name]) ? $dict[$name] : null;
+    function pdv_names($name){
+      $o = $name;
+      $n = trim($name);
+      return  array(
+        $o, $n,
+        preg_replace('/ /', "_", $n),
+        preg_replace('/-/', "_",$n),
+        preg_replace('/(-|\s)+/', "_",$n)
+      );
     }
-    
-    if(is_array($v)){
-      $res = Array();
-      foreach($v as $d) $res[]=trim(strip_tags($d));
-      if($implode) $res=implode(',', $res);
-      return $res;
+    function pdv_prep_v($v, $implode=true){
+      if (is_array($v)){
+        foreach($v as $k=>$d){
+          $v[$k]=pdv_clean_v($d);
+        }
+        if($implode) $v = implode(',', $v);
+      }
+      else if (is_string($v)){
+        $v = trim(strip_tags($v));
+        if($v === "") $v = null;
+      }
+      return $v;
     }
-    if ($v) return trim(strip_tags($v));
-    return null;
+    function prepped_dict_value($name, $dict, $implode=true){
+      $names = pdv_names($name);
+      foreach($names as $n){
+        $v = isset($dict[$n]) ? $dict[$n] : null;
+        if($v !== null)
+          return pdv_prep_v($v, $implode);
+      }
+      return null;
+    }
   }
 }
 
