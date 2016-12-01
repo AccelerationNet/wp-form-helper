@@ -38,34 +38,6 @@ function input_label($name, $idx=0, $no_default=false){
   return $name;
 }
 
-/*
-//require_once(dirname(__FILE__) . '/recaptchalib.php');
-function validate_captcha(){
-  global $RECAPTCHAED, $INVALIDS, $VALID_POST;
-  if(!$RECAPTCHAED || !is_postback()) return true;
-  $privatekey = "";
-  $resp = recaptcha_check_answer ($privatekey,
-                                  @$_SERVER["REMOTE_ADDR"],
-                                  @$_POST["recaptcha_challenge_field"],
-                                  @$_POST["recaptcha_response_field"]);
-  if(!$resp->is_valid){
-    @$INVALIDS['recaptcha'] = 'You entered the reCaptcha incorrectly, please try again!';
-      //."(reCAPTCHA said: " . $resp->error . ")";
-    return false;
-  }
-  return true;
-}
-
-function template_recaptcha(){
-  global $RECAPTCHAED;
-  $RECAPTCHAED = true;
-  $publickey="";
-  validate_captcha();
-  return recaptcha_get_html($publickey);
-}
-add_shortcode('recaptcha', 'template_recaptcha');
-*/
-
 function wpfh_eval($str){
   if(!$str) return "";
   $s = "\$val = $str;";
@@ -79,7 +51,7 @@ function wpfh_eval($str){
 class FormControl{
   var $name=null, $atts=null, $type=null, $text=null, $value_label=null;
   var $fields=null;
-  function FormControl($args=Array()){
+  function __construct($args=Array()){
     $this->fields=Array('name', 'atts', 'type', 'text', 'value_label');
     foreach($this->fields as $name) $this->{$name}=@$args[$name];
     if(!$this->type) $this->type = @$this->atts['type'];
@@ -139,40 +111,44 @@ if ( !function_exists('prep_name') ) {
 }
 
 if ( !function_exists('prepped_dict_value') ) {
-    function pdv_names($name){
-      $o = $name;
-      $n = trim($name);
-      return  array(
-        $o, $n,
-        preg_replace('/ /', "_", $n),
-        preg_replace('/-/', "_",$n),
-        preg_replace('/(-|\s)+/', "_",$n)
-      );
-    }
-    function pdv_prep_v($v, $implode=true){
-      if (is_array($v)){
-        foreach($v as $k=>$d){
-          $v[$k]=pdv_clean_v($d);
-        }
-        if($implode) $v = implode(',', $v);
+  function pdv_names($name){
+    $o = $name;
+    $n = trim($name);
+    return  array(
+      $o, $n,
+      preg_replace('/ /', "_", $n),
+      preg_replace('/-/', "_",$n),
+      preg_replace('/(-|\s)+/', "_",$n)
+    );
+  }
+  function pdv_clean_v($v){
+    $v = trim(strip_tags($v));
+    if($v === "") $v = null;
+    return $v;
+  }
+  function pdv_prep_v($v, $implode=true){
+    if (is_array($v)){
+      foreach($v as $k=>$d){
+        $v[$k]=pdv_clean_v($d);
       }
-      else if (is_string($v)){
-        $v = trim(strip_tags($v));
-        if($v === "") $v = null;
-      }
-      return $v;
+      if($implode) $v = implode(',', $v);
     }
-    function prepped_dict_value($name, $dict, $implode=true){
-      $names = pdv_names($name);
-      foreach($names as $n){
-        $v = isset($dict[$n]) ? $dict[$n] : null;
-        if($v !== null)
-          return pdv_prep_v($v, $implode);
-      }
-      return null;
+    else if (is_string($v)){
+      $v = pdv_clean_v($v);
     }
+    return $v;
+  }
+  function prepped_dict_value($name, $dict, $implode=true){
+    $names = pdv_names($name);
+    foreach($names as $n){
+      $v = isset($dict[$n]) ? $dict[$n] : null;
+      if($v !== null)
+        return pdv_prep_v($v, $implode);
+    }
+    return null;
   }
 }
+
 
 if ( !function_exists('rval') ) {
   // gets a value from the request collection
@@ -679,6 +655,44 @@ function template_ajax_upload ($atts, $text=null){
 }
 
 add_shortcode('ajax_upload', 'template_ajax_upload');
+
+function template_checkbox_list($atts, $body=null){
+  extract(sc_atts_for_env(array(
+    'values'=>"",
+    'name'=>NULL,
+    'label'=>null,
+    'texts'=>false,
+  ), $atts));
+  $att_str = atts_string($atts);
+  $ctl = add_control($name, $atts, $body, 'checkbox-list');
+  $values = str_getcsv($values, ',');
+  $selected_value = rval($name);
+  $css=programatic_classes($name);
+  if($texts) $texts= str_getcsv($texts, ',');
+  else $texts = Array();
+  foreach($values as $i => $v){
+    $t = @$texts[$i];
+    if(!$t)$t = $v;
+    $checks[] = <<<EOT
+<label class="checkbox">
+  <input name="$name" value="$v" type="checkbox" /><span class="text">$t</span>
+</label>
+EOT;
+  }
+  $checks = implode("\n", $checks);
+  
+  $out = <<<EOT
+<div class="fh-checkbox-list-holder checkbox-list $css">
+  $checks
+  <div class="killfloat clearer"></div>
+</div>
+
+EOT;
+  return $out;
+}
+
+add_shortcode('checkbox-list', 'template_checkbox_list');
+
 
 // Is this a valid date?
 function validDate($v){
