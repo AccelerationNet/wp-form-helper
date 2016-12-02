@@ -122,7 +122,7 @@ if ( !function_exists('prepped_dict_value') ) {
     );
   }
   function pdv_clean_v($v){
-    $v = trim(strip_tags($v));
+    $v = trim(strip_tags(urldecode($v)));
     if($v === "") $v = null;
     return $v;
   }
@@ -492,7 +492,8 @@ function template_option($atts, $text=NULL){
     'label'=>null,
   ), $atts));
   $atts = atts_string($atts);
-  if (is_null($value) && $text )$value = trim($text);
+  if (is_null($value) && $text )$value = $text;
+  $value = trim($value);
   $selected =(!is_null($value) && rval($name) == $value) || (is_null(rval($name)) && $selected);
   $atts .= " value=\"$value\"";
   if(!$text) $text = $value;
@@ -663,6 +664,10 @@ function template_checkbox_list($atts, $body=null){
     'label'=>null,
     'texts'=>false,
   ), $atts));
+  echo "$name <br>";
+  var_dump(@$_POST[$name]); echo "<br>";
+  $post_vals = rval($name, false);
+  var_dump($post_vals); echo "<br>";echo "<hr>";
   $att_str = atts_string($atts);
   $ctl = add_control($name, $atts, $body, 'checkbox-list');
   $values = str_getcsv($values, ',');
@@ -670,12 +675,20 @@ function template_checkbox_list($atts, $body=null){
   $css=programatic_classes($name);
   if($texts) $texts= str_getcsv($texts, ',');
   else $texts = Array();
+  if( strpos('[]',$name)<=0 ) $name = $name.'[]';
   foreach($values as $i => $v){
     $t = @$texts[$i];
     if(!$t)$t = $v;
+    $t = trim($t);
+    $v = trim($v);
+    $checked="";
+    if(is_array($post_vals)){
+      if (in_array($v, $post_vals)) $checked = "checked";
+      else if ($v == $post_vals) $checked = "checked";
+    }
     $checks[] = <<<EOT
 <label class="checkbox">
-  <input name="$name" value="$v" type="checkbox" /><span class="text">$t</span>
+  <input name="$name" value="$v" type="checkbox" $checked /><span class="text">$t</span>
 </label>
 EOT;
   }
