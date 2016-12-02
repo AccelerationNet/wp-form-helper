@@ -664,10 +664,7 @@ function template_checkbox_list($atts, $body=null){
     'label'=>null,
     'texts'=>false,
   ), $atts));
-  echo "$name <br>";
-  var_dump(@$_POST[$name]); echo "<br>";
   $post_vals = rval($name, false);
-  var_dump($post_vals); echo "<br>";echo "<hr>";
   $att_str = atts_string($atts);
   $ctl = add_control($name, $atts, $body, 'checkbox-list');
   $values = str_getcsv($values, ',');
