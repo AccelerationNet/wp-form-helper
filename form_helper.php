@@ -75,15 +75,17 @@ function &add_control( $name, &$atts, $text=null, $type=null){
 }
 
 // read a file, process its shortcodes and include them result here inline
-function wp_include($pth){
+function wp_include($pth='content'){
   global $WP_INCLUDES;
   if(@$WP_INCLUDES[$pth]) echo @$WP_INCLUDES[$pth];
   else echo do_shortcode(file_get_contents($pth, FILE_USE_INCLUDE_PATH));
 }
-
-function wp_preprocess($pth){
+function wp_preprocess_content($content, $key='content'){
   global $WP_INCLUDES;
-  $WP_INCLUDES[$pth]= do_shortcode(file_get_contents($pth, FILE_USE_INCLUDE_PATH));
+  $WP_INCLUDES[$key]= do_shortcode($content);
+}
+function wp_preprocess($pth){
+  wp_preprocess_content(file_get_contents($pth, FILE_USE_INCLUDE_PATH), $pth);
 }
 
 // Print the request parameters from the page
@@ -714,6 +716,7 @@ function validDate($v){
 }
 
 function validUSAPhone($phone){
+  if(!$phone) return true;
   return preg_match('/^((\+\d{1,3}(-| |\.|\/)?\(?\d\)?(-| |\.|\/)?\d{1,3})|(\(?\d{2,3}\)?))(-| |\.|\/)?(\d{3,4})(-| |\.)?(\d{4})( ?(x|ext)\.? ?\d{1,5})?$/', $phone);
 }
 // Validate an email address.
@@ -723,6 +726,7 @@ function validUSAPhone($phone){
 
 function validEmail($email)
 {
+   if(!$email) return true;
    $isValid = true;
    $atIndex = strrpos($email, "@");
    if (is_bool($atIndex) && !$atIndex)
