@@ -790,4 +790,8 @@ function validEmail($email)
 }
 /*  */
 
+function validPositiveNumber($v){
+  return doubleval($v)>0;
+}
+
 ?>
