@@ -621,7 +621,8 @@ function wpfh_get_img_thumbnail($imgurl){
   $base = ABSPATH;
   $pth = $base.$imgurl;
   $th_pth = $base.$pi['dirname'].'/'.$thname;
-  if(file_exists($th_pth)) return $th_pth;
+  $th_uri = $pi['dirname'].'/'.$thname;
+  if(file_exists($th_pth)) return $th_uri;
   $img = wp_get_image_editor($pth);
   //echo $pth."<br>\r\n".$th_pth."<br>\r\n".$thname."<br>\r\n";
   if ( ! is_wp_error( $img ) ) {
