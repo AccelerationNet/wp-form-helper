@@ -311,7 +311,10 @@ function validate_field($name, &$atts, $id=null, $text=null){
     'error_message'=>null,
   ), $atts));
   if(!$text) $text = $name;
-  if($required) $REQUIREDS[] = $name;
+  if($required){
+    $atts["data-required"] = true;
+    $REQUIREDS[] = $name;
+  } 
   if(is_postback()){
     $check = true;
     $v = rval($name);
@@ -512,6 +515,23 @@ function template_option($atts, $text=NULL){
   return $out;
 }
 add_shortcode('option', 'template_option');
+
+function template_options($atts, $text=NULL){
+  extract(sc_atts_for_env(array(
+    'name'=>null,
+    'value'=>NULL,
+    'label'=>null,
+  ), $atts));
+  $texts = preg_split("/[,\n]+/", do_shortcode($text), -1, PREG_SPLIT_NO_EMPTY);
+  $atts = atts_string($atts);
+  $out = "";
+  foreach($texts as $t){
+    $selected = ($value == $t);
+    $out .= template_option(Array("selected"=> true,"value"=>$t,'name'=>$name), $t);
+  }
+  return $out;
+}
+add_shortcode('options', 'template_options');
 
 function template_label($atts , $body=null){
     extract(sc_atts_for_env(array(
