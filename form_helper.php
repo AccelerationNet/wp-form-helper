@@ -312,7 +312,8 @@ function validate_field($name, &$atts, $id=null, $text=null){
   ), $atts));
   if(!$text) $text = $name;
   if($required){
-    $atts["data-required"] = true;
+    $atts["data-required"] = "true";
+    $atts["required"] = "true";
     $REQUIREDS[] = $name;
   } 
   if(is_postback()){
@@ -467,10 +468,10 @@ function template_radio($atts, $text=NULL){
   ), $atts));
   // if(!$id) $id = $name;
   validate_field($name, $atts, $id);
-
   if (is_null($value) && $text )$value = trim($text);
   if (is_null($value) && $name )$value = trim($name);
   $checked = (!is_null($value) && rval($name) == $value) || (is_null(rval($name)) && $checked);
+
   if($checked){ $atts["checked"] = "checked"; }
   //var_dump($value);echo"<Br>";
   $atts["value"] = $value;
