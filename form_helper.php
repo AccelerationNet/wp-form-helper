@@ -207,6 +207,12 @@ if ( !function_exists('atts_string') ) {
   }
 }
 
+if(!function_exists('is_post')){
+  function is_post(){
+    return $_SERVER['REQUEST_METHOD'] == 'POST';
+  }
+}
+
 if( !function_exists('is_postback') ){
   function is_postback(){
     $url = $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
