@@ -76,10 +76,14 @@ function &add_control( $name, &$atts, $text=null, $type=null){
 
 // read a file, process its shortcodes and include them result here inline
 function wp_include($pth='content'){
-  global $WP_INCLUDES;
-  if(@$WP_INCLUDES[$pth]) echo @$WP_INCLUDES[$pth];
-  else echo do_shortcode(file_get_contents($pth, FILE_USE_INCLUDE_PATH));
+  echo get_wp_include($pth);
 }
+function get_wp_include($pth='content'){
+  global $WP_INCLUDES;
+  if(@$WP_INCLUDES[$pth]) return @$WP_INCLUDES[$pth];
+  else return do_shortcode(file_get_contents($pth, FILE_USE_INCLUDE_PATH));
+}
+
 function wp_preprocess_content($content, $key='content'){
   global $WP_INCLUDES;
   $WP_INCLUDES[$key]= do_shortcode($content);
