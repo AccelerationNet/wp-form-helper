@@ -128,7 +128,7 @@ if ( !function_exists('prepped_dict_value') ) {
     );
   }
   function pdv_clean_v($v){
-    $v = trim(strip_tags(urldecode($v)));
+    $v = trim(strip_tags( rawurldecode($v) ));
     if($v === "") $v = null;
     return $v;
   }
@@ -148,8 +148,10 @@ if ( !function_exists('prepped_dict_value') ) {
     $names = pdv_names($name);
     foreach($names as $n){
       $v = isset($dict[$n]) ? $dict[$n] : null;
-      if($v !== null)
-        return pdv_prep_v($v, $implode);
+      if($v !== null){
+        $pv = pdv_prep_v($v, $implode);
+        return $pv;
+      }
     }
     return null;
   }
