@@ -44,6 +44,32 @@ function posted_registration_amount (){
   return floatval($amount);
 }
 
+function load_signup_data(){
+  global $wpdb;
+  $id = rval('signup_id');
+  $o="";
+  if(!is_postback() && $id && isSignupAdmin()){
+    $res = $wpdb->get_results('SELECT * FROM signups WHERE id='.intval($id));
+    if($res){
+      $row = $res[0];
+      $data =$row->signup_data;
+      $data = json_decode($data, ARRAY_A);
+      $data = $data[0];
+      //var_dump($data);
+      foreach($data as $key=>$val){
+        if($key == 'signup_id') continue; // dont overwrite with nothing
+        else if(is_array($val)) $_REQUEST[$key] = $val['value'];
+        else $_REQUEST[$key] = $val;
+      }
+      //var_dump($row->signup_data);
+      // TODO: JSON ENCODE/DECODE
+      $o='<script type="text/javascript">if(typeof(X8)=="undefined")X8={};X8._signupJson='.$row->signup_data.'</script>';
+    }
+  }
+  return $o;
+}
+
+
 function insert_signup(){
   global $wpdb;
     $data="";
