@@ -616,36 +616,39 @@ function wpfh_enqueue_scripts(){
 add_action('wp_enqueue_scripts', 'wpfh_enqueue_scripts');
 
 
-function ajax_file_upload_handler(){
-  // TODO: rate limit, and apply better security measures
-  check_ajax_referer("wpfh-ajax-image-upload", 'nonce');
-  if(!(is_array($_POST) && is_array($_FILES))){
-    return;
+if(!function_exists('ajax_file_upload_handler')){
+  function ajax_file_upload_handler(){
+    // TODO: rate limit, and apply better security measures
+    check_ajax_referer("wpfh-ajax-image-upload", 'nonce');
+    if(!(is_array($_POST) && is_array($_FILES))){
+      return;
+    }
+    if(!function_exists('wp_handle_upload')){
+      require_once(ABSPATH . 'wp-admin/includes/file.php');
+    }
+    $upload_overrides = array('test_form' => false);
+    $response = array('file_url'=>'');
+    $folder = 'wpfh';
+    if(@$_REQUEST['upload_to'])  $folder = $_REQUEST['upload_to'];
+    $folder = preg_replace('/\.\.\//','',$folder);
+    define( 'UPLOADS', 'wp-content/uploads/'. $folder );
+    foreach($_FILES as $file){
+      $file_info = wp_handle_upload($file, $upload_overrides);
+      // do something with the file info...
+      $url = @$file_info['url'];
+      $url = preg_replace('/https?:\/\/[^\/]+/','',$url);
+      $response['file_url'] = $url;
+      $response['nonce'] = wp_create_nonce( "wpfh-ajax-image-upload" );
+    }
+    header('Content-type: application/json'); 
+    echo json_encode($response);
+    die();
   }
-  if(!function_exists('wp_handle_upload')){
-    require_once(ABSPATH . 'wp-admin/includes/file.php');
-  }
-  $upload_overrides = array('test_form' => false);
-  $response = array('file_url'=>'');
-  $folder = 'wpfh';
-  if(@$_REQUEST['upload_to'])  $folder = $_REQUEST['upload_to'];
-  $folder = preg_replace('/\.\.\//','',$folder);
-  define( 'UPLOADS', 'wp-content/uploads/'. $folder );
-  foreach($_FILES as $file){
-    $file_info = wp_handle_upload($file, $upload_overrides);
-    // do something with the file info...
-    $url = @$file_info['url'];
-    $url = preg_replace('/https?:\/\/[^\/]+/','',$url);
-    $response['file_url'] = $url;
-    $response['nonce'] = wp_create_nonce( "wpfh-ajax-image-upload" );
-  }
-  header('Content-type: application/json'); 
-  echo json_encode($response);
-  die();
+  add_action('wp_ajax_wpfh_file_upload', 'ajax_file_upload_handler');
+  add_action('wp_ajax_nopriv_wpfh_file_upload', 'ajax_file_upload_handler');
+
 }
 
-add_action('wp_ajax_wpfh_file_upload', 'ajax_file_upload_handler');
-add_action('wp_ajax_nopriv_wpfh_file_upload', 'ajax_file_upload_handler');
 
 function wpfh_get_img_thumbnail($imgurl){
   if(!$imgurl) return null;
