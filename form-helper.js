@@ -6,7 +6,7 @@ WPFH.bind  = function bind(el, o){
     var inps = jQuery('[name='+k+']', el).each(function(i, inp){
       inp = jQuery(inp);
       if (inp.is('[type=radio],[type=checkbox]')){
-        jQuery.prop('checked', inp.val() == v);
+        inp.prop('checked', inp.val() == v);
       }
       else if (inp.is(':input')) inp.val(v);
       else if (inp.is('a') && k == "email") inp.attr('href', 'mailto:'+v);
