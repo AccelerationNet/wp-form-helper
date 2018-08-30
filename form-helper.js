@@ -17,7 +17,7 @@ WPFH.debounce = function(func, wait, immediate) {
 
 WPFH.throttle = function throttle (func, wait) {
     var context, args, timeout, throttling, more, result;
-    var whenDone = _.debounce(function(){ more = throttling = false; }, wait);
+    var whenDone = WPFH.debounce(function(){ more = throttling = false; }, wait);
     return function() {
       context = this; args = arguments;
       var later = function() {
@@ -44,7 +44,7 @@ WPFH.toCurrency = function toCurrency(it){
 WPFH.bind  = function bind(el, o){
   jQuery.each(o, function(k, v){
     // console.log('Binding ', k, v, o, el);
-    if(k.startsWith('$')) return true;
+    if(!k || k.indexOf('$')==0) return true;
     var inps = jQuery('[name='+k+'],.'+k, el).each(function(i, inp){
       inp = jQuery(inp);
       if (inp.is('[type=radio],[type=checkbox]')){
