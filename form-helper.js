@@ -41,6 +41,11 @@ WPFH.toCurrency = function toCurrency(it){
   return Number(it).toLocaleString('en-US', {style: 'currency', currency: 'USD'});
 }
 
+WPFH.fromCurrency = function fromCurrency(it){
+  if(typeof(it) == "number") return it;
+  return Number(it.toString().replace(/,|\$|\s/ig, ''));
+}
+
 WPFH.bind  = function bind(el, o){
   jQuery.each(o, function(k, v){
     // console.log('Binding ', k, v, o, el);
