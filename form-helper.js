@@ -1,6 +1,14 @@
 if(typeof(WPFH) == 'undefined') WPFH = {};
 console.log('Loading wpfh');
 
+WPFH.trimAndNullify = function trimAndNullify(it) {
+  if(!it) return null;
+  it = it.toString().trim();
+  if(it.length == 0) return null;
+  return it;
+};
+
+
 WPFH.debounce = function(func, wait, immediate) {
     var timeout;
     return function() {
@@ -70,6 +78,8 @@ WPFH.bind  = function bind(el, o){
 };
 
 WPFH.addObjectVal = function (o, k, v){
+  v = WPFH.trimAndNullify(v);
+  if(WPFH._serializePrefix) k = WPFH._serializePrefix + k;
   if(o[k]){
     if(Array.isArray(o[k])){ o[k].push(v); }
     else{ o[k]= [o[k], v]; }
@@ -92,10 +102,17 @@ WPFH.setObjectVals = function setObjectVals(el, o){
   });
 };
 
-WPFH.serializeForm = function(el){
-  var rtn = {};
-  WPFH.setObjectVals(el, rtn);
-  return rtn;
+WPFH._serializePrefix = null;
+WPFH.serialize = WPFH.serializeForm = function(el, prefix){
+  var rtn = {}, before = WPFH._serializePrefix;
+  el = jQuery(el);
+  try{
+    WPFH._serializePrefix = prefix;
+    WPFH.setObjectVals(el, rtn);
+    return rtn;
+  }finally{
+    WPFH._serializePrefix = before;
+  }
 };
 
 WPFH._plus = new RegExp('\\+','g');
