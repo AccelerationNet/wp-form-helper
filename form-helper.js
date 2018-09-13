@@ -54,8 +54,18 @@ WPFH.fromCurrency = function fromCurrency(it){
   return Number(it.toString().replace(/,|\$|\s/ig, ''));
 }
 
-WPFH.bind  = function bind(el, o){
+WPFH.prefixRemover = function prefixRemover(prefix){
+  var prefixRe = new RegExp('^'+prefix);
+  return function deprefixed(k){
+    return k.replace(prefixRe, '');
+  }
+}
+
+WPFH.bind  = function bind(el, o, keyMod){
+  var el = jQuery(el);
   jQuery.each(o, function(k, v){
+
+    if(keyMod){k = keyMod(k); }
     // console.log('Binding ', k, v, o, el);
     if(!k || k.indexOf('$')==0) return true;
     var inps = jQuery('[name='+k+'],.'+k, el).each(function(i, inp){
