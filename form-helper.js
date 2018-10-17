@@ -70,7 +70,7 @@ WPFH.bind  = function bind(el, o, keyMod){
     if(!k || k.indexOf('$')==0) return true;
     var inps = jQuery('[name='+k+'],.'+k, el).each(function(i, inp){
       inp = jQuery(inp);
-      if (inp.is('[type=radio],[type=checkbox]')){
+      if (inp.is('[type=radio]')){
         inp.prop('checked', inp.val() == v);
       }
       else if (inp.is(':input')){
@@ -102,11 +102,16 @@ WPFH.setObjectVals = function setObjectVals(el, o){
   var inps = jQuery(':input[name]', el).each(function(i, inp){
     inp = jQuery(inp);
     var name = inp.attr('name').trim();
-    if(inp.is('[type=checkbox],[type=radio]')){
+    if(inp.is('[type=checkbox]')){
+      var val = inp.is(':checked') ? inp.val() : null;
+      WPFH.addObjectVal(o, name, val);
+    }
+    else if(inp.is('[type=radio]')){
       if(inp.is(':checked')){
         WPFH.addObjectVal(o, name, inp.val());
       }
-    }else{
+    }
+    else{
       WPFH.addObjectVal(o, name, inp.val());
     }
   });
