@@ -287,7 +287,8 @@ function print_validation_errors(){
 // Returns any extra classes this form field should have
 // based on the request (mostly for validation)
 function programatic_classes($name){
-  $out = "";
+  $nc = strtolower(prep_name($name));
+  $out = "$nc ";
   if(is_invalid($name)) $out.= "error";
   return $out;
 }

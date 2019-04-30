@@ -140,7 +140,7 @@ WPFH.parseQuery = function(query) {
     var k = decodeURIComponent(pair[0]).replace(WPFH._plus, " ");
     var v = decodeURIComponent(pair[1]).replace(WPFH._plus, " ");
     if(obj[k]){
-      if (angular.isArray(obj[k])) obj[k].push(v);
+      if (Array.isArray(obj[k])) obj[k].push(v);
       else obj[k]= [obj[k],v];
     }
     else obj[k]=v;
@@ -150,3 +150,113 @@ WPFH.parseQuery = function(query) {
 
 WPFH.query = WPFH.parseQuery();
 WPFH.hashQuery = WPFH.parseQuery(window.location.hash.substring(1));
+
+var _serializer = function() {
+  const seen = [];
+  return function (key, value){
+    if(key.indexOf('$') == 0 ){
+      //console.log('dropping dom elements', key);
+      return null;
+    }
+    else if (typeof value === "object" && value !== null) {
+      if (seen.indexOf(value) >= 0 ) {
+        //console.log('Removing circular ', key, value);
+        return null;
+      }
+      seen.push(value);
+    }
+    return value;
+  };
+};
+
+WPFH.deepClone = function deepClone(o){
+  if(!o) o;
+  return JSON.parse(JSON.stringify(o, _serializer()));
+};
+
+
+
+WPFH.templates=[];
+
+WPFH.getTemplate = function getTemplate(name){
+  if(!WPFH.templates){
+    console.log("Templates not initialized");
+    return false;
+  }
+  var tem = WPFH.templates.filter('.template-'+name);
+  if(!tem){
+    console.log('couldnt find ',name,' template in ', WPFH.templates);
+    return false;
+  }
+  var tem = tem.clone();
+  tem.removeClass('template template-'+name);
+  return tem;
+};
+
+WPFH._$dialog = null;
+WPFH.dialog = function(message, title, cls, modal){
+  if(WPFH._$dialog){
+    WPFH._$dialog.dialog('destroy').remove();
+    WPFH._$dialog=null;
+  }
+  var d = WPFH._$dialog = jQuery("<div class='message'></div>");
+  d.addClass(cls);
+  d.html(message);
+  d.dialog({title: title, modal:modal});
+  return d;
+}
+WPFH.errorDialog = function(message, title){
+  return WPFH.dialog(message, title || "Please correct these errors: ", "error");
+}
+WPFH.infoDialog = function(message, title, modal){
+  return WPFH.dialog(message, title || "Note: ", "info", modal);
+}
+
+WPFH.successDialog = function(message, title){
+  return WPFH.dialog(message, title || "Success: ", "info", true);
+};
+
+WPFH.collapsePane = function collapsePane(pane){
+  console.log('collapsing: ', pane);
+  if(!pane.is('.pane')){ pane.parents('.pane'); }
+  pane.addClass('collapsed');
+  jQuery('.toggle .glyphicon', pane).addClass("glyphicon-circle-arrow-right").
+    removeClass("glyphicon-circle-arrow-down");
+};
+
+WPFH.togglePane = function togglePane(pane){
+  console.log('Toggling: ', pane);
+  if(!pane.is('.pane')){ pane.parents('.pane'); }
+  pane.toggleClass('collapsed');
+  if(pane.hasClass('collapsed')){
+    jQuery('.toggle .glyphicon', pane).addClass("glyphicon-circle-arrow-right").
+      removeClass("glyphicon-circle-arrow-down");
+  }else{
+    jQuery('.toggle .glyphicon', pane).addClass("glyphicon-circle-arrow-down").
+      removeClass("glyphicon-circle-arrow-right");
+  }
+};
+
+WPFH.baseInit = function baseInit(){
+  WPFH.templates = jQuery('.template');
+  WPFH.templates.detach();
+
+  jQuery('body').on('click', '.toggle', function(evt){
+    var el = jQuery(evt.target);
+    if(jQuery('[type=checkbox]', el).length>0) return true;
+    var p = el.parents('.pane');
+    WPFH.togglePane(p);
+  });
+};
+
+WPFH.optionMultiSelector = function(field, title, options){
+  var o = "<div class='"+field+"-selector'>\n";
+  o += "<label><span class=text>"+title+": </span><input name="+field+"-search class=date-search></label>";
+  for(var opt,i ; opt=options[i] ; i++){
+    o += "<label><input type=checkbox value='"+opt+"'><span class=text>"+opt+"</span></label>\n";
+  }
+  o += "</div>";
+  return jQuery(o);
+};
+
+jQuery(WPFH.baseInit);
