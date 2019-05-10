@@ -61,14 +61,44 @@ WPFH.prefixRemover = function prefixRemover(prefix){
   }
 }
 
+WPFH.collapseHandler = function collapseHandler(){};
+
+WPFH.makeCollapsibleContainer = function makeCollapsibleContainer(content, options){
+  /*
+.wpfh-collapsible .collapsible-title{ display:inline-block;  margin: 0 8px;}
+.wpfh-collapsible > .wpfh-collapse-icon {display:inline-block; margin: 0 8px;  border:1px solid black; background-color:#CCF; padding:5px;}
+.wpfh-collapsible > .wpfh-collapse-body {border: 1px solid black; background:white; padding:5px; margin:5px;}
+.wpfh-collapsible.collapsed > .wpfh-collapse-body {height:5px; overflow:hidden;}
+
+    jQuery("body").on("click", ".wpfh-collapse-icon",
+    function(evt){
+    var el = jQuery(evt.target);
+    if(!el.is('.wpfh-collapsible')) el = el.parents('.wpfh-collapsible');
+    console.log('toggling', el, el.hasClass('collasped'))
+    el.toggleClass('collapsed');
+    });
+   */
+  var col = jQuery("<div class=\"wpfh-collapsible\">"+
+                   "<div class=\"wpfh-collapse-icon\"><span class=\"while-collapsed\"> - </span> <span class=\"hide-while-collapsed\"> + </span></div>"+
+                   "<h3 class=collapsible-title></h3></div>");
+  var body = jQuery("<div class=\"wpfh-collapse-body\">");
+  col.append(body);
+  content = jQuery(content);
+  body.append(content);
+  if(options && options.collapsed){ col.addClass("collapsed");}
+  if(options && options.title){ jQuery(".collapsible-title",col).html(options.title);}
+  return col;
+};
+
 WPFH.bind  = function bind(el, o, keyMod){
   var el = jQuery(el);
   jQuery.each(o, function(k, v){
 
     if(keyMod){k = keyMod(k); }
-    // console.log('Binding ', k, v, o, el);
+
     if(!k || k.indexOf('$')==0) return true;
-    var inps = jQuery('[name='+k+'],.'+k, el).each(function(i, inp){
+    var inps = jQuery('[name='+k+"],[name='"+k+"[]'],."+k, el).each(function(i, inp){
+      // console.log('Binding ', k, v,  inp, o);
       inp = jQuery(inp);
       if (inp.is('[type=radio]')){
         inp.prop('checked', inp.val() == v);
@@ -78,6 +108,7 @@ WPFH.bind  = function bind(el, o, keyMod){
         else inp.val(v);
       }
       else if (inp.is('a') && k == "email") inp.attr('href', 'mailto:'+v);
+      else if (inp.is('a')) inp.attr('href', v);
       else if (inp.is('span')){
         if(inp.hasClass('currency'))inp.text(WPFH.toCurrency(v));
         else if (inp.hasClass('as-html')) inp.html(v);
