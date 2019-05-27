@@ -1,7 +1,8 @@
-if(window.WPFH == undefined) window.WPFH={};
+if(typeof(WPFH) == 'undefined') WPFH = {};
 (function($){
   "use strict";
   WPFH.uploading =0;
+  WPFH.onDocumentUpload = null;
   WPFH.ajaxUploadReplacer = function(el){
     el =$(el);
     var btn = el.find('.upload-btn');
@@ -17,6 +18,11 @@ if(window.WPFH == undefined) window.WPFH={};
         var nonce = res.nonce;
         $(btn).data('nonce', nonce);
         var url = res.file_url;
+        WPFH.uploading--;
+        if(WPFH.onDocumentUpload){
+          var cont = WPFH.onDocumentUpload(url);
+          if(!cont) return;
+        }
         //console.log('uploaded file', res, url);
         var hidden = $('<input type=hidden />').attr('name', name).val(url);
         var img = $('<img />').attr('src', url);
@@ -24,7 +30,6 @@ if(window.WPFH == undefined) window.WPFH={};
             .append([hidden, img]);
         el.find('.uploaded-file').detach();
         el.append(newcontent);
-        WPFH.uploading--;
       }
     });
     //console.log(upload);
