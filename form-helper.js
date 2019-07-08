@@ -103,16 +103,22 @@ WPFH.bind  = function bind(el, o, keyMod){
       if (inp.is('[type=radio]')){
         inp.prop('checked', inp.val() == v);
       }
+      else if(inp.is('[type=date]')){
+        v = v.replace(/[\sT].*/,''); // remove time component for date boxes;
+        inp.val(v || '');
+      }
       else if (inp.is(':input')){
         if(inp.hasClass('currency')) inp.val(Number(v).toFixed(2));
-        else inp.val(v);
+        else if(inp.hasClass('number')) inp.val(Number(v));
+        else inp.val(v || '');
       }
       else if (inp.is('a') && k == "email") inp.attr('href', 'mailto:'+v);
-      else if (inp.is('a')) inp.attr('href', v);
+      else if (inp.is('a')) inp.attr('href', v || '');
       else if (inp.is('span')){
         if(inp.hasClass('currency'))inp.text(WPFH.toCurrency(v));
-        else if (inp.hasClass('as-html')) inp.html(v);
-        else inp.text(v);
+        else if(inp.hasClass('number')) inp.text(Number(v).toString());
+        else if (inp.hasClass('as-html')) inp.html(v || '');
+        else inp.text(v || '');
       }
     });
   });
