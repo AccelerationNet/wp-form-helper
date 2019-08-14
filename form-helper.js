@@ -186,7 +186,26 @@ WPFH.parseQuery = function(query) {
 };
 
 WPFH.query = WPFH.parseQuery();
-WPFH.hashQuery = WPFH.parseQuery(window.location.hash.substring(1));
+
+WPFH._initHashQuery = function _initHashQuery(){
+  WPFH.hashQuery = {};
+  WPFH.hashString = window.location.hash.substring(2);
+  if(WPFH.hashString) WPFH.hashQuery = WPFH.parseQuery(WPFH.hashString);
+  // console.log('Hash Query: ', WPFH.hashQuery);
+}
+WPFH._initHashQuery();
+
+
+WPFH.setHashQuery = function setHashQuery(k, v){
+  WPFH._initHashQuery();
+  WPFH.hashQuery[k] = v;
+  var arr = [], keys = Object.keys(WPFH.hashQuery) ;
+  for(var i=0; i < keys.length ; i++){
+    var k = keys[i], v = WPFH.hashQuery[k];
+    arr.push(encodeURIComponent(k)+"="+encodeURIComponent(v));
+  }
+  window.location.hash = '#?'+arr.join('&');
+};
 
 var _serializer = function() {
   const seen = [];
