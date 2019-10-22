@@ -80,9 +80,29 @@ function wp_include($pth='content'){
 }
 function get_wp_include($pth='content'){
   global $WP_INCLUDES;
-  if(@$WP_INCLUDES[$pth]) return @$WP_INCLUDES[$pth];
-  else return do_shortcode(file_get_contents($pth, FILE_USE_INCLUDE_PATH));
+  $content = null;
+  if(@$WP_INCLUDES[$pth]){ $content = $WP_INCLUDES[$pth];   } 
+  else{
+    $content = file_get_contents($pth, FILE_USE_INCLUDE_PATH);
+    if($content) $content = do_shortcode($content);
+  }
+  if(!$content){
+    error_log("WP_INCLUDE: Failed to find content for path $pth");
+  }
+  return $content;
 }
+
+function template_wp_include($atts, $text=null){
+  extract(sc_atts_for_env(array(
+    'src'=>null,
+  ), $atts));
+  $o = get_wp_include($src);
+  error_log("Template wp_include '$src' loaded content len: ". strlen($o));
+  return $o;
+}
+add_shortcode('wp_include', 'template_wp_include');
+
+
 
 function wp_preprocess_content($content, $key='content'){
   global $WP_INCLUDES;

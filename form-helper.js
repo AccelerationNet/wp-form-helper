@@ -97,6 +97,11 @@ WPFH.bind  = function bind(el, o, keyMod){
     if(keyMod){k = keyMod(k); }
 
     if(!k || k.indexOf('$')==0) return true;
+
+    // if should by default hide, use your stylesheet
+    if(v !== null && v !== false){ jQuery('.if-'+k, el).show(); }
+    else{ jQuery('.if-'+k, el).hide(); }
+
     var inps = jQuery('[name='+k+"],[name='"+k+"[]'],."+k, el).each(function(i, inp){
       // console.log('Binding ', k, v,  inp, o);
       inp = jQuery(inp);
@@ -104,6 +109,7 @@ WPFH.bind  = function bind(el, o, keyMod){
         inp.prop('checked', inp.val() == v);
       }
       else if(inp.is('[type=date]')){
+        v = v && new Date(v).toISOString();
         v = v.replace(/[\sT].*/,''); // remove time component for date boxes;
         inp.val(v || '');
       }
