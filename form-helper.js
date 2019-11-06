@@ -90,6 +90,27 @@ WPFH.makeCollapsibleContainer = function makeCollapsibleContainer(content, optio
   return col;
 };
 
+
+// Triggered on init by attr "wp-include"
+WPFH.include = function(parent, path, object){
+  var d = Object.assign({path:path}, object);
+  return jQuery.ajax({
+    url: ajaxurl+"?action=wp_include",
+    method: "POST",
+    async:true,
+    data: d,
+    error: function(resp){
+      console.log('failed to get admin inv', resp);
+    },
+    success: function (resp) {
+      console.log('wp_included path: ', path);
+      parent.html(resp);
+      if(object) WPFH.bind(parent, object);
+    }
+  });
+};
+WPFH.include.doc = "Triggered on init by attr 'wp-include' ";
+
 WPFH.bind  = function bind(el, o, keyMod){
   var el = jQuery(el);
   jQuery.each(o, function(k, v){
@@ -129,6 +150,10 @@ WPFH.bind  = function bind(el, o, keyMod){
     });
   });
 };
+WPFH.bind.doc = "Take an object and use its keys to fill matching elements"+
+  " in the html. Each object key will bind to spans with classes and inputs"+
+  " with names matching the keys.  Elts with if-{name} will be hidden or"+
+  " shown based on the truthfullness of the associated value";
 
 WPFH.addObjectVal = function (o, k, v){
   v = WPFH.trimAndNullify(v);
@@ -172,6 +197,8 @@ WPFH.serialize = WPFH.serializeForm = function(el, prefix){
     WPFH._serializePrefix = before;
   }
 };
+
+WPFH.serialize.doc = "Given an element, return an object representing each form value";
 
 WPFH._plus = new RegExp('\\+','g');
 WPFH.parseQuery = function(query) {
@@ -309,6 +336,13 @@ WPFH.baseInit = function baseInit(){
     var p = el.parents('.pane');
     WPFH.togglePane(p);
   });
+
+  jQuery('[wp-include]').each(function(){
+    var parent = jQuery(this);
+    var path = parent.attr('wp-include');
+    WPFH.include(parent, path);
+  });
+
 };
 
 WPFH.optionMultiSelector = function(field, title, options){

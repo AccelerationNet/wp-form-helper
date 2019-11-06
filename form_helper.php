@@ -78,6 +78,7 @@ function &add_control( $name, &$atts, $text=null, $type=null){
 function wp_include($pth='content'){
   echo get_wp_include($pth);
 }
+
 function get_wp_include($pth='content'){
   global $WP_INCLUDES;
   $content = null;
@@ -90,6 +91,14 @@ function get_wp_include($pth='content'){
     error_log("WP_INCLUDE: Failed to find content for path $pth");
   }
   return $content;
+}
+
+add_action('wp_ajax_wp_include', 'wp_include_action');
+function wp_include_action(){
+  $path = rval('path');
+  header('Content-Type: text/html');
+  wp_include($path);
+  exit();
 }
 
 function template_wp_include($atts, $text=null){
