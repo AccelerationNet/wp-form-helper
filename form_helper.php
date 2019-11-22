@@ -380,12 +380,15 @@ function template_input($atts, $text=null){
     'note'=>null,
     'default'=>null,
     'editable'=>null,
+    
   ), $atts));
   $vatt = "";
+  if($type=="date" && $default=='now') { $default = date('Y-m-d'); }
   if(!$name) $name = trim($text);
   validate_field($name, $atts, null, $text);
   if(rval($name)) $atts["value"] = rval($name);
   if($default && !@$atts["value"]) $atts["value"] = $default;
+  if($default) $atts['data-default']=$default;
   $css = programatic_classes($name);
   add_control($name, $atts, $text, 'input');
   $val = @$atts['value'];

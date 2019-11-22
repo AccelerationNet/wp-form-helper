@@ -130,9 +130,9 @@ WPFH.bind  = function bind(el, o, keyMod){
         inp.prop('checked', inp.val() == v);
       }
       else if(inp.is('[type=date]')){
-        v = v && new Date(v).toISOString();
+        v = v && new Date(v).toISOString() || '';
         v = v.replace(/[\sT].*/,''); // remove time component for date boxes;
-        inp.val(v || '');
+        inp.val(v);
       }
       else if (inp.is(':input')){
         if(inp.hasClass('currency')) inp.val(Number(v).toFixed(2));
@@ -343,6 +343,20 @@ WPFH.baseInit = function baseInit(){
     WPFH.include(parent, path);
   });
 
+};
+
+WPFH.resetForm = function resetForm (form){
+  jQuery(':input', jQuery(form)).each(function(){
+    WPFH.resetField(this);
+  });
+};
+
+WPFH.resetField = function resetField(field){
+  var f = jQuery(field);
+  if(f.data('default'))f.val(f.data('default'));
+  else{
+    f.val(null);
+  }
 };
 
 WPFH.optionMultiSelector = function(field, title, options){
