@@ -111,6 +111,34 @@ WPFH.include = function(parent, path, object){
 };
 WPFH.include.doc = "Triggered on init by attr 'wp-include' ";
 
+WPFH.bindOne = function(inp, v, k){
+  console.log('bind ', jQuery(inp)[0].outerHTML, v, k);
+  if (inp.is('[type=radio][type=checkbox]')){
+    inp.prop('checked', inp.val() == v);
+  }
+  else if(inp.is('[type=date]')){
+    v = v && new Date(v).toISOString() || '';
+    v = v.replace(/[\sT].*/,''); // remove time component for date boxes;
+    inp.val(v);
+  }
+  else if (inp.is(':input')){
+    if(inp.hasClass('currency')) inp.val(Number(v).toFixed(2));
+    else if(inp.hasClass('number')) inp.val(Number(v));
+    else inp.val(v || '');
+  }
+  else if (inp.is('a') && k == "email") inp.attr('href', 'mailto:'+v);
+  else if (inp.is('a')) inp.attr('href', v || '');
+  else if (inp.is('span,td')){
+    if(inp.hasClass('currency'))inp.text(WPFH.toCurrency(v));
+    else if(inp.hasClass('number')) inp.text(Number(v).toString());
+    else if (inp.hasClass('as-html')) inp.html(v || '');
+    else if( inp.hasClass('date') || inp.hasClass('datetime') ){
+      inp.html((v||'').replace(' 00:00:00',''));
+    }
+    else inp.text(v || '');
+  }
+};
+
 WPFH.bind  = function bind(el, o, keyMod){
   var el = jQuery(el);
   jQuery.each(o, function(k, v){
@@ -124,29 +152,9 @@ WPFH.bind  = function bind(el, o, keyMod){
     else{ jQuery('.if-'+k, el).hide(); }
 
     var inps = jQuery('[name='+k+"],[name='"+k+"[]'],."+k, el).each(function(i, inp){
+      // if(k == "is_closed") console.log('binding ', inp.outerHTML, k, o[k]);
       // console.log('Binding ', k, v,  inp, o);
-      inp = jQuery(inp);
-      if (inp.is('[type=radio]')){
-        inp.prop('checked', inp.val() == v);
-      }
-      else if(inp.is('[type=date]')){
-        v = v && new Date(v).toISOString() || '';
-        v = v.replace(/[\sT].*/,''); // remove time component for date boxes;
-        inp.val(v);
-      }
-      else if (inp.is(':input')){
-        if(inp.hasClass('currency')) inp.val(Number(v).toFixed(2));
-        else if(inp.hasClass('number')) inp.val(Number(v));
-        else inp.val(v || '');
-      }
-      else if (inp.is('a') && k == "email") inp.attr('href', 'mailto:'+v);
-      else if (inp.is('a')) inp.attr('href', v || '');
-      else if (inp.is('span,td')){
-        if(inp.hasClass('currency'))inp.text(WPFH.toCurrency(v));
-        else if(inp.hasClass('number')) inp.text(Number(v).toString());
-        else if (inp.hasClass('as-html')) inp.html(v || '');
-        else inp.text(v || '');
-      }
+      WPFH.bindOne(jQuery(inp), v, k);
     });
   });
 };
@@ -156,6 +164,7 @@ WPFH.bind.doc = "Take an object and use its keys to fill matching elements"+
   " shown based on the truthfullness of the associated value";
 
 WPFH.addObjectVal = function (o, k, v){
+
   v = WPFH.trimAndNullify(v);
   if(WPFH._serializePrefix) k = WPFH._serializePrefix + k;
   if(o[k]){
@@ -166,8 +175,8 @@ WPFH.addObjectVal = function (o, k, v){
 };
 
 WPFH.setObjectVals = function setObjectVals(el, o){
-  // console.log('Binding ', k, v, o, el);
   var inps = jQuery(':input[name]', el).each(function(i, inp){
+    // console.log('Serializing ', inp[0].outerHTML, o, name, inp.val());
     inp = jQuery(inp);
     var name = inp.attr('name').trim();
     if(inp.is('[type=checkbox]')){
@@ -176,6 +185,7 @@ WPFH.setObjectVals = function setObjectVals(el, o){
     }
     else if(inp.is('[type=radio]')){
       if(inp.is(':checked')){
+        // console.log('Serializing ', inp[0].outerHTML, o, name, inp.val());
         WPFH.addObjectVal(o, name, inp.val());
       }
     }
@@ -231,7 +241,12 @@ WPFH._initHashQuery();
 
 WPFH.setHashQuery = function setHashQuery(k, v){
   WPFH._initHashQuery();
-  WPFH.hashQuery[k] = v;
+  if(v !== null && v !== undefined){
+    WPFH.hashQuery[k] = v;
+  }else{
+    delete(WPFH.hashQuery[k]);
+  }
+
   var arr = [], keys = Object.keys(WPFH.hashQuery) ;
   for(var i=0; i < keys.length ; i++){
     var k = keys[i], v = WPFH.hashQuery[k];
