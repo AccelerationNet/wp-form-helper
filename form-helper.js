@@ -112,7 +112,7 @@ WPFH.include = function(parent, path, object){
 WPFH.include.doc = "Triggered on init by attr 'wp-include' ";
 
 WPFH.bindOne = function(inp, v, k){
-  console.log('bind ', jQuery(inp)[0].outerHTML, v, k);
+  // console.log('bind ', jQuery(inp)[0].outerHTML, v, k);
   if (inp.is('[type=radio][type=checkbox]')){
     inp.prop('checked', inp.val() == v);
   }
