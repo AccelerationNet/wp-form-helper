@@ -364,15 +364,22 @@ WPFH.baseInit = function baseInit(){
 };
 
 WPFH.resetForm = function resetForm (form){
+
   jQuery(':input', jQuery(form)).each(function(){
     WPFH.resetField(this);
   });
 };
 
 WPFH.resetField = function resetField(field){
-  var f = jQuery(field);
-  if(f.data('default'))f.val(f.data('default'));
-  else{
+  var f = jQuery(field),
+      d = f.attr('default'),
+      dfn = eval(f.attr('defaultfn')),
+      dfnv = dfn && dfn(f);
+  if(d){
+    f.val(d);
+  }else if(dfn){
+    f.val(dfn(f));
+  }else{
     f.val(null);
   }
 };
