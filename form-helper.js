@@ -372,8 +372,8 @@ WPFH.resetForm = function resetForm (form){
 
 WPFH.resetField = function resetField(field){
   var f = jQuery(field),
-      d = f.attr('default'),
-      dfn = eval(f.attr('defaultfn')),
+      d = f.attr('default') || f.data('default'),
+      dfn = eval(f.attr('defaultfn') || f.data('defaultfn')),
       dfnv = dfn && dfn(f);
   if(d){
     f.val(d);

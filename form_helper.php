@@ -388,7 +388,7 @@ function template_input($atts, $text=null){
   validate_field($name, $atts, null, $text);
   if(rval($name)) $atts["value"] = rval($name);
   if($default && !@$atts["value"]) $atts["value"] = $default;
-  if($default) $atts['data-default']=$default;
+  if($default) $atts['default'] = $atts['data-default']=$default;
   $css = programatic_classes($name);
   add_control($name, $atts, $text, 'input');
   $val = @$atts['value'];
