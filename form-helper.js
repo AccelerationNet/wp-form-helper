@@ -112,7 +112,7 @@ WPFH.include = function(parent, path, object){
 WPFH.include.doc = "Triggered on init by attr 'wp-include' ";
 
 WPFH.bindOne = function(inp, v, k){
-  // console.log('bind ', jQuery(inp)[0].outerHTML, v, k);
+  // if(k == "quote_part") console.log('bind ', jQuery(inp)[0].outerHTML, v, k);
   if (inp.is('[type=radio][type=checkbox]')){
     inp.prop('checked', inp.val() == v);
   }
@@ -151,7 +151,10 @@ WPFH.bind  = function bind(el, o, keyMod){
     if(v !== null && v !== false){ jQuery('.if-'+k, el).show(); }
     else{ jQuery('.if-'+k, el).hide(); }
 
-    var inps = jQuery('[name='+k+"],[name='"+k+"[]'],."+k, el).each(function(i, inp){
+    var sel = '[name='+k+"],[name='"+k+"[]'],."+k;
+    var inps = jQuery(sel, el);
+    // console.log(el, o, inps.length, inps);
+    inps.each(function(i, inp){
       // if(k == "is_closed") console.log('binding ', inp.outerHTML, k, o[k]);
       // console.log('Binding ', k, v,  inp, o);
       WPFH.bindOne(jQuery(inp), v, k);
@@ -361,15 +364,22 @@ WPFH.baseInit = function baseInit(){
 };
 
 WPFH.resetForm = function resetForm (form){
+
   jQuery(':input', jQuery(form)).each(function(){
     WPFH.resetField(this);
   });
 };
 
 WPFH.resetField = function resetField(field){
-  var f = jQuery(field);
-  if(f.data('default'))f.val(f.data('default'));
-  else{
+  var f = jQuery(field),
+      d = f.attr('default') || f.data('default'),
+      dfn = eval(f.attr('defaultfn') || f.data('defaultfn')),
+      dfnv = dfn && dfn(f);
+  if(d){
+    f.val(d);
+  }else if(dfn){
+    f.val(dfn(f));
+  }else{
     f.val(null);
   }
 };

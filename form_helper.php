@@ -106,7 +106,7 @@ function template_wp_include($atts, $text=null){
     'src'=>null,
   ), $atts));
   $o = get_wp_include($src);
-  error_log("Template wp_include '$src' loaded content len: ". strlen($o));
+  // error_log("Template wp_include '$src' loaded content len: ". strlen($o));
   return $o;
 }
 add_shortcode('wp_include', 'template_wp_include');
@@ -406,7 +406,7 @@ function template_input($atts, $text=null){
   validate_field($name, $atts, null, $text);
   if(rval($name)) $atts["value"] = rval($name);
   if($default && !@$atts["value"]) $atts["value"] = $default;
-  if($default) $atts['data-default']=$default;
+  if($default) $atts['default'] = $atts['data-default']=$default;
   $css = programatic_classes($name);
   add_control($name, $atts, $text, 'input');
   $val = @$atts['value'];
