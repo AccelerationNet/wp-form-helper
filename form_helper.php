@@ -186,12 +186,30 @@ if ( !function_exists('prepped_dict_value') ) {
   }
 }
 
-
+if(!function_exists('recstripslashes')){
+  function recstripslashes($variable) {
+    if ( is_string( $variable ) ){
+      return stripslashes( $variable ) ;
+    }
+    else if ( is_array( $variable ) ){
+      foreach( $variable as $k => $value ){
+        $nk = stripslashes($k);
+        if ($nk != $k) {
+          $arr[$nk] = recstripslashes( $value );
+          unset($arr[$k]);
+        }else{
+          $variable[ $k ] = recstripslashes( $value );
+        }
+      }
+      return $variable ;
+    }
+  }
+}
 if ( !function_exists('rval') ) {
   // gets a value from the request collection
   // Duplicated from functions for completeness
   function rval( $name, $implode=true ){
-    return prepped_dict_value($name, $_REQUEST, $implode);
+    return recstripslashes(prepped_dict_value($name, $_REQUEST, $implode));
   }
 }
 
