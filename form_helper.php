@@ -239,7 +239,9 @@ if ( !function_exists('sc_atts_for_env') ) {
 // it is copied here so that this file can be mostly
 // self contained for easy moving to other projects
   function sc_atts_for_env($arr, &$atts){
+    // error_log('Atts'.print_r($arr, true)." - ".print_r($atts, true));
     $rtn = shortcode_atts($arr, $atts);
+    if(!$atts || is_string($atts)) return $rtn;
     foreach($arr as $k=>$v) $atts[$k] = null;
     return $rtn;
   }
