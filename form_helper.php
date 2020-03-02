@@ -1,10 +1,13 @@
 <?php
+global $VALID_POST, $INVALIDS, $REQUIREDS, $WP_INCLUDES, $FORM_CONTROLS, $RECAPTCHAED, $WPFH_INCLUDE_ROOT;
 $VALID_POST = false;
 $INVALIDS = Array();
 $REQUIREDS = Array();
 $WP_INCLUDES = Array();
 $FORM_CONTROLS = Array();
 $RECAPTCHAED = false;
+$WPFH_INCLUDE_ROOT= dirname(__FILE__).'/../';
+// error_log('WPFH INCLUDE ROOT: '.$WPFH_INCLUDE_ROOT);
 
 function value_label($name, $idx=null, $no_default=false){
   $ctl = get_control($name, $idx);
@@ -79,12 +82,16 @@ function wp_include($pth='content'){
   echo get_wp_include($pth);
 }
 
+
 function get_wp_include($pth='content'){
-  global $WP_INCLUDES;
+  global $WP_INCLUDES, $WPFH_INCLUDE_ROOT;
   $content = null;
   if(@$WP_INCLUDES[$pth]){ $content = $WP_INCLUDES[$pth];   } 
   else{
+    if($pth[0] != "/") $pth = $WPFH_INCLUDE_ROOT.$pth;
+    // error_log('WP_INCLUDE: '.$pth);
     $content = file_get_contents($pth, FILE_USE_INCLUDE_PATH);
+    
     if($content) $content = do_shortcode($content);
   }
   if(!$content){

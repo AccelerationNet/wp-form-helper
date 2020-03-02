@@ -58,8 +58,8 @@ WPFH.prefixRemover = function prefixRemover(prefix){
   var prefixRe = new RegExp('^'+prefix);
   return function deprefixed(k){
     return k.replace(prefixRe, '');
-  }
-}
+  };
+};
 
 WPFH.collapseHandler = function collapseHandler(){};
 
@@ -92,7 +92,21 @@ WPFH.makeCollapsibleContainer = function makeCollapsibleContainer(content, optio
 
 
 // Triggered on init by attr "wp-include"
-WPFH.include = function(parent, path, object){
+WPFH._includeCache={};
+WPFH.include = function(parent, path, object, cache){
+  if(cache === null || cache === undefined){ cache = true; }
+  var suc = function(resp){
+    console.log('wp_included path: ', path, ' cache: ',cache, ' exists:', (WPFH._includeCache[path] ?'Y':'N'));
+    if(cache) WPFH._includeCache[path]=resp;
+    parent.html(resp);
+    if(object) WPFH.bind(parent, object);
+    return new Promise(function(resolve){resolve(resp);});
+  };
+  if(cache && WPFH._includeCache[path]){
+    var html = WPFH._includeCache[path];
+    return suc(html);
+  }
+
   var d = Object.assign({path:path}, object);
   return jQuery.ajax({
     url: ajaxurl+"?action=wp_include",
@@ -102,11 +116,7 @@ WPFH.include = function(parent, path, object){
     error: function(resp){
       console.log('failed to get admin inv', resp);
     },
-    success: function (resp) {
-      console.log('wp_included path: ', path);
-      parent.html(resp);
-      if(object) WPFH.bind(parent, object);
-    }
+    success: suc
   });
 };
 WPFH.include.doc = "Triggered on init by attr 'wp-include' ";
@@ -294,7 +304,7 @@ WPFH.getTemplate = function getTemplate(name){
     console.log("Templates not initialized");
     return false;
   }
-  var tem = WPFH.templates.filter('.template-'+name+', .'+name+'-template,.template.'+name);
+  var tem = WPFH.templates.filter('.template-'+name+', .'+name+'-template,.template.'+name).first();
   if(!tem){
     console.log('couldnt find ',name,' template in ', WPFH.templates);
     return false;
@@ -348,10 +358,21 @@ WPFH.togglePane = function togglePane(pane){
   }
 };
 
-WPFH.baseInit = function baseInit(){
-  WPFH.templates = jQuery('.template');
-  WPFH.templates.detach();
+WPFH.templates=null;
+WPFH.initTemplates = function(){
+  var t = jQuery('.template');
+  t.detach();
+  if(WPFH.templates){
+    WPFH.templates = WPFH.templates.add(t);
+    console.log( 'Added more templates', t, WPFH.templates);
+  }else{
+    WPFH.templates = t;
+    console.log( 'Added templates', t, WPFH.templates);
+  }
+};
 
+WPFH.baseInit = function baseInit(){
+  WPFH.initTemplates();
   jQuery('body').on('click', '.toggle', function(evt){
     var el = jQuery(evt.target);
     if(jQuery('[type=checkbox]', el).length>0) return true;
