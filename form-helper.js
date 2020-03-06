@@ -122,26 +122,30 @@ WPFH.include = function(parent, path, object, cache){
 WPFH.include.doc = "Triggered on init by attr 'wp-include' ";
 
 WPFH.bindOne = function(inp, v, k){
-  if(k == "search_field") console.log('bind ', jQuery(inp)[0].outerHTML, v, k, inp.val(), inp.val() == v);
-  if (inp.is('[type=radio][type=checkbox]')){
+
+  if (inp.is('[type=radio],[type=checkbox]')){
+
     inp.attr('checked', inp.val() == v ? true : null);
-    inp.prop('checked', inp.val() == v);
+    inp.prop('checked', inp.val() == v ? true : null);
   }
   else if(inp.is('[type=date]')){
+
     v = v && new Date(v).toISOString() || '';
     v = v.replace(/[\sT].*/,''); // remove time component for date boxes;
     inp.val(v);
   }
   else if (inp.is(':input')){
+
     if(inp.hasClass('currency')
        || inp.parents('label').hasClass('currency')) inp.val(Number(v).toFixed(2));
     else if(inp.hasClass('number')
            || inp.parents('label').hasClass('number')) inp.val(Number(v));
     else inp.val(v || '');
   }
-  else if (inp.is('a') && k == "email") inp.attr('href', 'mailto:'+v);
-  else if (inp.is('a')) inp.attr('href', v || '');
+  else if (inp.is('a') && k == "email"){ inp.attr('href', 'mailto:'+v);}
+  else if (inp.is('a')){ inp.attr('href', v || '');}
   else if (inp.is('span,td')){
+
     if(inp.hasClass('currency'))inp.text(WPFH.toCurrency(v));
     else if(inp.hasClass('decimal'))inp.text(Number(v).toFixed(2));
     else if(inp.hasClass('number')) inp.text(Number(v).toString());
