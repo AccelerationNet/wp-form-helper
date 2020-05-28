@@ -129,9 +129,10 @@ WPFH.bindOne = function(inp, v, k){
     inp.prop('checked', inp.val() == v ? true : null);
   }
   else if(inp.is('[type=date]')){
-
-    v = v && new Date(v).toISOString() || '';
-    v = v.replace(/[\sT].*/,''); // remove time component for date boxes;
+    if(v)try{
+      v = v && new Date(v).toISOString() || '';
+      v = v.replace(/[\sT].*/,''); // remove time component for date boxes;
+    }catch(e){ console.log('Couldnt handle date: ', v); }
     inp.val(v);
   }
   else if (inp.is(':input')){
