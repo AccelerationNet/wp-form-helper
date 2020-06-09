@@ -99,8 +99,12 @@ WPFH.include = function(parent, path, object, cache){
     console.log('wp_included path: ', path, ' cache: ',cache, ' exists:', (WPFH._includeCache[path] ?'Y':'N'));
     if(cache) WPFH._includeCache[path]=resp;
     parent.html(resp);
+    WPFH.initTemplates(parent);
     if(object) WPFH.bind(parent, object);
-    return new Promise(function(resolve){resolve(resp);});
+    return new Promise(function(resolve){
+      resolve(resp);
+
+    });
   };
   if(cache && WPFH._includeCache[path]){
     var html = WPFH._includeCache[path];
@@ -161,15 +165,8 @@ WPFH.bindOne = function(inp, v, k){
 WPFH.bind  = function bind(el, o, keyMod){
   var el = jQuery(el);
   jQuery.each(o, function(k, v){
-
-    if(keyMod){k = keyMod(k); }
-
+    if(keyMod){ k = keyMod(k); }
     if(!k || k.indexOf('$')==0) return true;
-
-    // if should by default hide, use your stylesheet
-    if(v !== null && v !== false){ jQuery('.if-'+k, el).show(); }
-    else{ jQuery('.if-'+k, el).hide(); }
-
     var sel = '[name='+k+"],[name='"+k+"[]'],."+k;
     var inps = jQuery(sel, el);
     // console.log(el, o, inps.length, inps);
@@ -179,11 +176,36 @@ WPFH.bind  = function bind(el, o, keyMod){
       WPFH.bindOne(jQuery(inp), v, k);
     });
   });
+
+  // handle ifs even if the key is missing from the object
+  // make sure that nullity doesnt result in missing if evaluations
+  jQuery('[class*=if-]', el).each(function(){
+    var $iffed = jQuery(this);
+    var classes = $iffed.attr('class').split(/\s+/);
+    for(var i=0,c;c = classes[i] ; i ++){
+      if(c.match(/if-/i)){
+        var k = c.replace(/if-/i, '');
+        var k2 = keyMod && keyMod(k);
+        if(o && k && o[k] || o && k2 && o[k2]) $iffed.show();
+        else $iffed.hide();
+      }
+    }
+  });
 };
+
 WPFH.bind.doc = "Take an object and use its keys to fill matching elements"+
   " in the html. Each object key will bind to spans with classes and inputs"+
   " with names matching the keys.  Elts with if-{name} will be hidden or"+
   " shown based on the truthfullness of the associated value";
+
+WPFH.toBool = function(b){
+  if(!b) return false; // 0, false, null
+  if(typeof(b) == 'string'){
+    b = b.toLowerCase();
+    return ['1','t','true','y','yes'].indexOf(b) >= 0;
+  }
+  return !!b; //return all other truthful values as true
+};
 
 WPFH.addObjectVal = function (o, k, v){
 
@@ -364,8 +386,8 @@ WPFH.togglePane = function togglePane(pane){
 };
 
 WPFH.templates=null;
-WPFH.initTemplates = function(){
-  var t = jQuery('.template');
+WPFH.initTemplates = function(root){
+  var t = jQuery('.template', root);
   t.detach();
   if(WPFH.templates){
     WPFH.templates = WPFH.templates.add(t);
@@ -374,6 +396,7 @@ WPFH.initTemplates = function(){
     WPFH.templates = t;
     console.log( 'Added templates', t, WPFH.templates);
   }
+
 };
 
 WPFH.baseInit = function baseInit(){
