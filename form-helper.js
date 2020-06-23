@@ -179,13 +179,20 @@ WPFH.bind  = function bind(el, o, keyMod){
 
   // handle ifs even if the key is missing from the object
   // make sure that nullity doesnt result in missing if evaluations
+
   jQuery('[class*=if-]', el).each(function(){
+    var k, k2;
     var $iffed = jQuery(this);
     var classes = $iffed.attr('class').split(/\s+/);
     for(var i=0,c;c = classes[i] ; i ++){
-      if(c.match(/if-/i)){
-        var k = c.replace(/if-/i, '');
-        var k2 = keyMod && keyMod(k);
+      if(c.match(/if-not-/i)){
+        k = c.replace(/if-not-/i, '');
+        k2 = keyMod && keyMod(k);
+        if(o && k && o[k] || o && k2 && o[k2]) $iffed.hide();
+        else $iffed.show();
+      }else if(c.match(/if-/i)){
+        k = c.replace(/if-/i, '');
+        k2 = keyMod && keyMod(k);
         if(o && k && o[k] || o && k2 && o[k2]) $iffed.show();
         else $iffed.hide();
       }
