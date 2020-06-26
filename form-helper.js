@@ -125,6 +125,8 @@ WPFH.include = function(parent, path, object, cache){
 };
 WPFH.include.doc = "Triggered on init by attr 'wp-include' ";
 
+
+
 WPFH.bindOne = function(inp, v, k){
 
   if (inp.is('[type=radio],[type=checkbox]')){
@@ -162,14 +164,34 @@ WPFH.bindOne = function(inp, v, k){
   }
 };
 
+WPFH.bindOne.doc =
+  "Bind one is attempting to bind one input to one value based on \n"+
+  "a key that it matched \n"+
+  " \n"+
+  "Used mostly by WPFH.bind, but occasionally called when setting \n"+
+  "an inputs single value \n"+
+  " \n"+
+  "Recognized classes for special rendering \n"+
+  " * currency  \n"+
+  " * decimal   \n"+
+  " * as-html   \n"+
+  " * number    \n"+
+  " * date , datetime render this as a timestamp  \n";
+
+
 WPFH.bind  = function bind(el, o, keyMod){
   var el = jQuery(el);
   jQuery.each(o, function(k, v){
     if(keyMod){ k = keyMod(k); }
     if(!k || k.indexOf('$')==0) return true;
-    var sel = '[name='+k+"],[name='"+k+"[]'],."+k;
+    var sel = "."+k+
+          ",."+k+" > span.value"+
+          ",[name="+k+"]"+
+          ",[name='"+k+"[]']"+
+          ",[bind="+k+"]"+
+          ",[bind='"+k+"[]']";
     var inps = jQuery(sel, el);
-    // console.log(el, o, inps.length, inps);
+    // console.log(el, o, inps.length, inps, sel);
     inps.each(function(i, inp){
       // if(k == "is_closed") console.log('binding ', inp.outerHTML, k, o[k]);
       // console.log('Binding ', k, v,  inp, o);
@@ -200,10 +222,17 @@ WPFH.bind  = function bind(el, o, keyMod){
   });
 };
 
-WPFH.bind.doc = "Take an object and use its keys to fill matching elements"+
-  " in the html. Each object key will bind to spans with classes and inputs"+
-  " with names matching the keys.  Elts with if-{name} will be hidden or"+
-  " shown based on the truthfullness of the associated value";
+
+WPFH.bind.doc = "Take an object and use its keys to fill matching elements \n"+
+  " in the html. Each object key will bind to: \n"+
+  "  * span's & td's: with a matching class name  \n"+
+  "  * span's & td's: with matching name=\"key\" or bind=\"key\" attributes \n"+
+  "  * input's: with matching name=\"key\" or bind=\"key\" attributes \n"+
+  " \n"+
+  "Elts with if-{name} if-not-{name} \n"+
+  "will be hidden or shown based on the truthfullness of the associated value \n"+
+  "";
+
 
 WPFH.toBool = function(b){
   if(!b) return false; // 0, false, null
