@@ -478,15 +478,22 @@ function template_textarea($atts, $text=null){
     'name'=>null,
     'class'=>null,
     'value'=>null,
+    'editable'=>null,
   ), $atts));
   if(!$name) $name = trim($text);
   if(rval($name)) $value = rval($name);
   $css=programatic_classes($name);
   add_control($name, $atts, $text, 'textarea');
   $atts = atts_string($atts);
+  $i = "     <textarea name=\"$name\" $atts >$value</textarea>";
+  
+  if($editable && !wpfh_eval($editable)){
+    $i = "<span class=\"value\">$value</span>";
+    }
   return "
-   <label class=\"$css $class\"><span class=\"text\">$text</span>
-     <textarea name=\"$name\" $atts >$value</textarea>
+   <label class=\"$css $class textarea-control\">
+      <span class=\"text\">$text</span>
+      $i
    </label>";
 }
 add_shortcode('textarea', 'template_textarea');
