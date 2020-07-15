@@ -126,9 +126,7 @@ WPFH.include = function(parent, path, object, cache){
 WPFH.include.doc = "Triggered on init by attr 'wp-include' ";
 
 WPFH.bindOne = function(inp, v, k){
-
   if (inp.is('[type=radio],[type=checkbox]')){
-
     inp.attr('checked', inp.val() == v ? true : null);
     inp.prop('checked', inp.val() == v ? true : null);
   }
@@ -435,12 +433,17 @@ WPFH.resetField = function resetField(field){
       d = f.attr('default') || f.data('default'),
       dfn = eval(f.attr('defaultfn') || f.data('defaultfn')),
       dfnv = dfn && dfn(f);
-  if(d){
-    f.val(d);
-  }else if(dfn){
-    f.val(dfn(f));
+  if(f.is('[type=radio],[type=checkbox]')){
+    if(d && f.val() == d){ f.prop('checked', true);}
+    else { f.prop('checked', false); }
   }else{
-    f.val(null);
+    if(d){
+      f.val(d);
+    }else if(dfn){
+      f.val(dfn(f));
+    }else{
+      f.val(null);
+    }
   }
 };
 
