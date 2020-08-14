@@ -139,6 +139,22 @@ WPFH.bindOne = function(inp, v, k){
     }catch(e){ console.log('Couldnt handle date: ', v); }
     inp.val(v);
   }
+  else if(inp.is('[type=datetime-local]')){
+    if(v)try{
+      if(!v.match(/Z$|[-+]\d*$/)){// Local TS
+        // pretend its UTC to make it not change times
+        v = v && new Date(v+'Z').toISOString() || '';
+        v = v.replace(/Z$/,''); // remove extra timezone
+      }else{
+        console.log('Not sure what to do with a timezone on a datetime-local  box!!!',
+                    inp, v, k);
+        v = v && new Date(v).toISOString() || '';
+        v = v.replace(/Z$/,''); // remove utc timezone - will shift timezone
+      }
+
+    }catch(e){ console.log('Couldnt handle date: ', v); }
+    inp.val(v);
+  }
   else if (inp.is(':input')){
 
     if(inp.hasClass('currency')
