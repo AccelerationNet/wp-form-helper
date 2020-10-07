@@ -455,6 +455,7 @@ WPFH.baseInit = function baseInit(){
     var el = jQuery(evt.target);
     if(jQuery('[type=checkbox]', el).length>0) return true;
     var p = el.parents('.pane');
+    evt.stopPropagation();
     WPFH.togglePane(p);
   });
 
