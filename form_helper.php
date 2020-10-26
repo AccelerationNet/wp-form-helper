@@ -505,11 +505,13 @@ function template_bool_radio($atts, $text=null){
     'true_value'=>'1',
     'false_value'=>'0',
     'name'=>null,
-    'value'=>null
+    'value'=>null,
+    'default'=> null,
   ), $atts));
 
   $yatt = "";
   $natt = "";
+  if(!isset($value)) $value = $default;
   if (!is_null(r_bool($name))) $value = r_bool($name);
   $value = to_bool($value);
   $ctl = add_control($name, $atts, $text, 'bool_radio');
@@ -518,8 +520,14 @@ function template_bool_radio($atts, $text=null){
     $ctl->value_label = $true_text;
   }
   else if (!is_null($value) && $value === false){
-    $natt = " checked=\"checked\"";
+    $natt = " checked=\"checked\""; 
     $ctl->value_label = $false_text;
+  }
+  if(isset($default)) $default = to_bool($default);
+  if($default === true){
+    $yatt .= " default=\"$true_value\" "  ;
+  }else if($default === false){
+    $natt .= " default=\"$false_value\" "  ;
   }
   $css=programatic_classes($name);
   if($text){
