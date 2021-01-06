@@ -230,8 +230,11 @@ WPFH.bind  = function bind(el, o, keyMod){
       }else if(c.match(/if-/i)){
         k = c.replace(/if-/i, '');
         k2 = keyMod && keyMod(k);
-        if(o && k && o[k] || o && k2 && o[k2]) $iffed.show();
-        else $iffed.hide();
+        if(o && k && o[k] || o && k2 && o[k2]){
+          $iffed.show().addClass('shown').removeClass('not-shown');
+        }else{
+          $iffed.hide().addClass('not-shown').removeClass('shown');
+        }
       }
     }
   });
