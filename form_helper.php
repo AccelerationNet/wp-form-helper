@@ -9,6 +9,106 @@ $RECAPTCHAED = false;
 $WPFH_INCLUDE_ROOT= dirname(__FILE__).'/../';
 // error_log('WPFH INCLUDE ROOT: '.$WPFH_INCLUDE_ROOT);
 
+
+function wpfh_is_numerically_indexed_array($arr){
+  if(!is_array($arr)) return false;
+  $i=0;
+  foreach($arr as $k=>$v){
+    if($k !== $i) return false;
+    $i+=1;
+  }
+  return true;
+}
+
+function wpfh_int_list(...$args){
+  $them=[];
+  foreach($args as $inp){
+    if(is_array($inp)){
+      $them = array_merge($them, wpfh_int_list(...$inp));
+    }
+    else if(is_string($inp)){
+      $inps = preg_split('/[,\s"]+/', $inp);
+      foreach($inps as $it){
+        $i = intval($it);
+        $them[] = $i;
+      }
+    }
+    else if(is_int($inp)){
+      $them[] = $inp;
+    }
+  }
+  return $them;
+}
+
+
+function wpfh_string_list(...$inp){
+  $them=[];
+  foreach($inp as $it){
+    if(wpfh_is_numerically_indexed_array($it)){
+      $them = array_merge($them, wpfh_string_list(...$it));
+    }else if(is_string($it)){
+      $its = preg_split('/\s*,\s*/', $it);
+      foreach($its as $s){
+        $them[] = trim($s);
+      }
+    }else{
+      $them[] = print_r($it,true);
+    }
+  }
+  return $them;
+}
+
+function _wpfh_string_list_check($it){
+  if(!$it) return true; // nothing / null can be part of string list
+  if(is_numerically_indexed_array($it)){
+    foreach($it as $next){
+      if (!_wpfh_string_list_check($next)){
+        return false;
+      }
+    }
+  }else if(!is_string($it)){
+    return false;
+  }
+  return true;
+}
+
+function wpfh_is_string_list($it){
+  if(!_wpfh_string_list_check($it))return false;
+  return wpfh_string_list($it);
+}
+
+
+
+function wpfh_log(...$msgs){
+  $trace = debug_backtrace();
+  $file = @$trace[1]['file'];
+  $file = preg_replace('/.*wp-content\/plugins/i','',$file);
+  $caller = @$trace[1]['function'];
+  $ln = @$trace[1]['line'];
+  // $msgs[] = " | $file/$caller#$ln";
+  $o = " ";
+  foreach($msgs as $msg){
+    $it = false;
+    $it = is_string_list($msg);
+    if($it){ $o .= implode(', ', $it)." "; }
+    else if(is_array($msg) || is_object($msg)){
+      $o .= print_r($msg, true)."\n";
+    }else{
+      $o .= $msg." ";
+    }
+  }
+  if(function_exists('_wpfh_log_drain')){
+    return _wpfh_log_drain($o);
+  }
+}
+if(!function_exists('_wpfh_log_drain')){
+  function _wpfh_log_drain($o){
+    return error_log($o);
+  }
+}
+
+
+
 function value_label($name, $idx=null, $no_default=false){
   $ctl = get_control($name, $idx);
   if(!$ctl) return rval($name);
