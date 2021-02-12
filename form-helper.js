@@ -165,7 +165,9 @@ WPFH.bindOne = function(inp, v, k){
     else inp.val(v || '');
   }
   else if (inp.is('a') && k == "email"){ inp.attr('href', 'mailto:'+v);}
-  else if (inp.is('a')){ inp.attr('href', v || '');}
+  else if (inp.is('a')){
+    inp.attr('href', v || null);
+  }
   else if (inp.is('span,td')){
 
     if(inp.hasClass('currency'))inp.text(WPFH.toCurrency(v));
