@@ -125,10 +125,28 @@ WPFH.include = function(parent, path, object, cache){
 };
 WPFH.include.doc = "Triggered on init by attr 'wp-include' ";
 
+WPFH._todate = function (dt){
+  if(!dt) dt = new Date();
+  if(typeof(dt) == "string"){
+    /* Why Javascript!?!  WHY!!
+       new Date("2020-02-24 00:00:00") => Mon Feb 24 2020 00:00:00 GMT-0500
+       new Date("2020-02-24") => Sun Feb 23 2020 19:00:00 GMT-0500
+    */
+    if(dt.length == "2020-02-02".length){
+      dt = dt +" 00:00:00"; // specify time I guess to avoid JS timezone chicanery
+    }
+    dt = new Date(dt);
+  }
+  if(isNaN(dt.getTime())){
+    console.log('Error converting date:', dt_in, dt);
+    return null;
+  }
+  return dt;
+};
 // Returns local date in isoformat
 WPFH.isodate = function isodate (dt){
-  if(!dt) dt = new Date();
-  if(typeof(dt) == "string") dt = new Date(dt);
+  dt = WPFH._todate(dt);
+  if(!dt) return null;
   var d = dt.getDate().toString().padLeft("0",2),y =dt.getFullYear(), m = (dt.getMonth()+1).toString().padLeft("0",2);
   // ISOString comes out in UTC
   // dt.toISOString().replace(/T.*/,'');
@@ -136,26 +154,21 @@ WPFH.isodate = function isodate (dt){
 };
 
 WPFH.isodatetime = function isodatetime (dt_in, tOrSpace, includeMils){
-    var dt = dt_in;
-    if(!dt) dt = new Date();
-    if(typeof(dt) == "string") dt = new Date(dt);
-    if(isNaN(dt.getTime())){
-      console.log('Error converting date:', dt_in, dt);
-      return null;
-    }
-    var d = dt.getDate().toString().padLeft("0",2),y =dt.getFullYear(), M = (dt.getMonth()+1).toString().padLeft("0",2),
-        h=dt.getHours().toString().padLeft("0",2), m=dt.getMinutes().toString().padLeft("0",2), s=dt.getSeconds().toString().padLeft("0",2),
-        ms = dt.getMilliseconds(), spc = tOrSpace ? 'T' : ' ';
+  var dt = WPFH._todate(dt_in);
+  if(!dt) return null;
+  var d = dt.getDate().toString().padLeft("0",2),y =dt.getFullYear(), M = (dt.getMonth()+1).toString().padLeft("0",2),
+      h=dt.getHours().toString().padLeft("0",2), m=dt.getMinutes().toString().padLeft("0",2), s=dt.getSeconds().toString().padLeft("0",2),
+      ms = dt.getMilliseconds(), spc = tOrSpace ? 'T' : ' ';
 
-    // ISOString comes out in UTC
-    // dt.toISOString().replace(/T.*/,'');
+  // ISOString comes out in UTC
+  // dt.toISOString().replace(/T.*/,'');
 
-    var ts = y+'-'+M+'-'+d+spc+h+':'+m+':'+s;
-    if(includeMils){
-      ts+='.'+ms;
-    }
-    return ts;
-  };
+  var ts = y+'-'+M+'-'+d+spc+h+':'+m+':'+s;
+  if(includeMils){
+    ts+='.'+ms;
+  }
+  return ts;
+};
 
 
 
@@ -170,7 +183,7 @@ WPFH.bindOne = function(inp, v, k){
     if(v)try{
       v = v && WPFH.isodate(v);
     }catch(e){ console.log('Couldnt handle date: ', v); }
-    // console.log("Binding ", inp, v, k, vin);
+    console.log("Binding ", inp, v, k, vin);
     inp.val(v);
   }
   else if(inp.is('[type=datetime-local]')){
