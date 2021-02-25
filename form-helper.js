@@ -534,64 +534,107 @@ WPFH.optionMultiSelector = function(field, title, options){
 
 WPFH._modifiedInputs = new Set();
 WPFH._defaultValueKey = "initialValue";
-WPFH._dirtyFieldsPrompt = "Changes you made may not be saved. Continue?";
+
 
 WPFH.hasDirtyFields = function(){
   if(WPFH._modifiedInputs.size) return WPFH._modifiedInputs;
   return null;
 };
 
-WPFH.flagDirty = function(it){
-  WPFH._modifiedInputs.add(it || true);
-};
-
-WPFH.resetDirtyFields = function(){
-  WPFH._modifiedInputs = new Set();
-
-};
-
-WPFH.resetInitialFieldValues = function(){
-  jQuery(WPFH._dirtyFieldSelector).each(function(){
-    var target = this;
-    target.dataset[WPFH._defaultValueKey] = WPFH._dirtyFieldValue(target);
-  });
-};
-
-WPFH._dirtyFieldValue = function(target){
-  return ("" + (target.value || target.textContent)).trim();
-};
 
 
-WPFH._dirtyFieldSelector = null;
+
+class WPFHDirtyFieldTracker {
+  constructor(selector, prompt){
+    this.selector = selector;
+    this.fields = jQuery(selector);
+    this.dirtyfields = new Set();
+    this.initialValueKey = "initialValue";
+    this.prompt = prompt || "Changes you made may not be saved. Continue?";
+    this.reset();
+  }
+  _fieldValue(target){
+    return ("" + (target.value || target.textContent)).trim();
+  }
+
+  hasDirtyFields(){
+    return this.dirtyfields.size > 0;
+  }
+  isDirty(it) {
+    return this.dirtyfields.has(it);
+  }
+  cleanDirty(it) {
+    return this.dirtyfields.remove(it || true);
+  }
+  flagDirty(it){
+    return this.dirtyfields.add(it || true);
+  }
+  reset(it) {
+    this.dirtyfields = new Set();
+    this.setInitialFieldValue();
+  }
+  setInitialFieldValue(){
+    var tracker = this;
+    jQuery(this.selector).each((i, target)=>{
+      target.dataset[tracker.initialValueKey] = tracker._fieldValue(target);
+    });
+  }
+  inputChangeHandler(evt){
+    const target = evt.target;
+    let original;
+    if(jQuery(this.selector).toArray().indexOf(target) < 0) return false;
+    if (this.initialValueKey in target) {
+      original = target[this.initialValueKey];
+    } else {
+      original = target.dataset[this.initialValueKey];
+    }
+    if (original !== this._fieldValue(target)) {
+      if (!this.dirtyfields.has(target)) {
+        this.dirtyfields.add(target);
+      }
+    } else if (this.dirtyfields.has(target)) {
+      this.dirtyfields.delete(target);
+    }
+  }
+
+  confirmIfDirty(text){
+    var tracker = this;
+    if(!text) text = this.prompt;
+    return new Promise(function(resolve, reject){
+      if (tracker.hasDirtyFields()) {
+        resolve(WPFH._confirm(text));
+      }else{
+        resolve(true);
+      }
+    });
+  }
+}
+
 WPFH.addDirtyFieldTracking = function( select ){
-  if(!select) select = ':input';
-  WPFH._dirtyFieldSelector = select;
+  if(!select) select = ':input:not(button,[type=submit])';
+  var tracker =  new WPFHDirtyFieldTracker(select);
   // detect input modifications
   addEventListener("input", (evt) => {
     const target = evt.target;
     let original;
-    if(jQuery(select).toArray().indexOf(target) < 0) return false;
-    if (WPFH._defaultValueKey in target) {
-      original = target[WPFH._defaultValueKey];
-    } else {
-      original = target.dataset[WPFH._defaultValueKey];
-    }
-    if (original !== WPFH._dirtyFieldValue(target)) {
-      if (!WPFH._modifiedInputs.has(target)) {
-        WPFH._modifiedInputs.add(target);
-      }
-    } else if (WPFH._modifiedInputs.has(target)) {
-      WPFH._modifiedInputs.delete(target);
-    }
+    tracker.inputChangeHandler(evt);
   });
   // clear modified inputs upon form submission
-  addEventListener("submit", () => {
-    WPFH.resetDirtyFields();
-    // to prevent the warning from happening, it is advisable
-    // that you clear your form controls back to their default
-    // state with form.reset() after submission
+  addEventListener("submit", () => { tracker.reset(); });
+  return tracker;
+};
+
+// store default values
+WPFH.addConfirmToExit = function(select){
+  var tracker = WPFH.addDirtyFieldTracking(select);
+  // warn before closing if any inputs are modified
+  addEventListener("beforeunload", (evt) => {
+    if (tracker.hasDirtyFields()) {
+      evt.returnValue = WPFH._dirtyFieldsPrompt;
+      return WPFH._dirtyFieldsPrompt;
+    }
   });
-  WPFH.resetDirtyFields();
+  return tracker;
 };
 
 WPFH._confirm = function (text){
@@ -600,32 +643,6 @@ WPFH._confirm = function (text){
     return resolve(false);
   });
 };
-
-WPFH.maybeConfirmDirtyFields = function (text){
-  if(!text) text = WPFH._dirtyFieldsPrompt;
-  return new Promise(function(resolve, reject){
-    if (WPFH.hasDirtyFields()) {
-      resolve(WPFH._confirm(text));
-    }else{
-      resolve(true);
-    }
-  });
-};
-
-// store default values
-WPFH.addConfirmToExit = function(select){
-  WPFH.addDirtyFieldTracking(select);
-  // warn before closing if any inputs are modified
-  addEventListener("beforeunload", (evt) => {
-    if (WPFH.hasDirtyFields()) {
-      evt.returnValue = WPFH._dirtyFieldsPrompt;
-      return WPFH._dirtyFieldsPrompt;
-    }
-  });
-};
-
-
-
 
 
 jQuery(WPFH.baseInit);
