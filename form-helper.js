@@ -125,9 +125,42 @@ WPFH.include = function(parent, path, object, cache){
 };
 WPFH.include.doc = "Triggered on init by attr 'wp-include' ";
 
+// Returns local date in isoformat
+WPFH.isodate = function isodate (dt){
+  if(!dt) dt = new Date();
+  if(typeof(dt) == "string") dt = new Date(dt);
+  var d = dt.getDate().toString().padLeft("0",2),y =dt.getFullYear(), m = (dt.getMonth()+1).toString().padLeft("0",2);
+  // ISOString comes out in UTC
+  // dt.toISOString().replace(/T.*/,'');
+  return y+'-'+m+'-'+d;
+};
+
+WPFH.isodatetime = function isodatetime (dt_in, tOrSpace, includeMils){
+    var dt = dt_in;
+    if(!dt) dt = new Date();
+    if(typeof(dt) == "string") dt = new Date(dt);
+    if(isNaN(dt.getTime())){
+      console.log('Error converting date:', dt_in, dt);
+      return null;
+    }
+    var d = dt.getDate().toString().padLeft("0",2),y =dt.getFullYear(), M = (dt.getMonth()+1).toString().padLeft("0",2),
+        h=dt.getHours().toString().padLeft("0",2), m=dt.getMinutes().toString().padLeft("0",2), s=dt.getSeconds().toString().padLeft("0",2),
+        ms = dt.getMilliseconds(), spc = tOrSpace ? 'T' : ' ';
+
+    // ISOString comes out in UTC
+    // dt.toISOString().replace(/T.*/,'');
+
+    var ts = y+'-'+M+'-'+d+spc+h+':'+m+':'+s;
+    if(includeMils){
+      ts+='.'+ms;
+    }
+    return ts;
+  };
+
 
 
 WPFH.bindOne = function(inp, v, k){
+  var vin = v;
   // console.log('bind', k, inp);
   if (inp.is('[type=radio],[type=checkbox]')){
     inp.attr('checked', inp.val() == v ? true : null);
@@ -135,24 +168,14 @@ WPFH.bindOne = function(inp, v, k){
   }
   else if(inp.is('[type=date]')){
     if(v)try{
-      v = v && new Date(v).toISOString() || '';
-      v = v.replace(/[\sT].*/,''); // remove time component for date boxes;
+      v = v && WPFH.isodate(v);
     }catch(e){ console.log('Couldnt handle date: ', v); }
+    // console.log("Binding ", inp, v, k, vin);
     inp.val(v);
   }
   else if(inp.is('[type=datetime-local]')){
     if(v)try{
-      if(!v.match(/Z$|[-+]\d*$/)){// Local TS
-        // pretend its UTC to make it not change times
-        v = v && new Date(v+'Z').toISOString() || '';
-        v = v.replace(/Z$/,''); // remove extra timezone
-      }else{
-        console.log('Not sure what to do with a timezone on a datetime-local  box!!!',
-                    inp, v, k);
-        v = v && new Date(v).toISOString() || '';
-        v = v.replace(/Z$/,''); // remove utc timezone - will shift timezone
-      }
-
+      v = v && WPFH.isodatetime(v);
     }catch(e){ console.log('Couldnt handle date: ', v); }
     inp.val(v);
   }
@@ -174,9 +197,8 @@ WPFH.bindOne = function(inp, v, k){
     else if(inp.hasClass('decimal'))inp.text(Number(v).toFixed(2));
     else if(inp.hasClass('number')) inp.text(Number(v).toString());
     else if (inp.hasClass('as-html')) inp.html(v || '');
-    else if( inp.hasClass('date') || inp.hasClass('datetime') ){
-      inp.html((v||'').replace(' 00:00:00',''));
-    }
+    else if( inp.hasClass('date') ) inp.html(v && WPFH.isodate(v));
+    else if (inp.hasClass('datetime') )inp.html( v && WPFH.isodatetime(v));
     else inp.text(v || '');
   }
 };
@@ -508,5 +530,102 @@ WPFH.optionMultiSelector = function(field, title, options){
   o += "</div>";
   return jQuery(o);
 };
+
+
+WPFH._modifiedInputs = new Set();
+WPFH._defaultValueKey = "initialValue";
+WPFH._dirtyFieldsPrompt = "Changes you made may not be saved. Continue?";
+
+WPFH.hasDirtyFields = function(){
+  if(WPFH._modifiedInputs.size) return WPFH._modifiedInputs;
+  return null;
+};
+
+WPFH.flagDirty = function(it){
+  WPFH._modifiedInputs.add(it || true);
+};
+
+WPFH.resetDirtyFields = function(){
+  WPFH._modifiedInputs = new Set();
+
+};
+
+WPFH.resetInitialFieldValues = function(){
+  jQuery(WPFH._dirtyFieldSelector).each(function(){
+    var target = this;
+    target.dataset[WPFH._defaultValueKey] = WPFH._dirtyFieldValue(target);
+  });
+};
+
+WPFH._dirtyFieldValue = function(target){
+  return ("" + (target.value || target.textContent)).trim();
+};
+
+
+WPFH._dirtyFieldSelector = null;
+WPFH.addDirtyFieldTracking = function( select ){
+  if(!select) select = ':input';
+  WPFH._dirtyFieldSelector = select;
+  // detect input modifications
+  addEventListener("input", (evt) => {
+    const target = evt.target;
+    let original;
+    if(jQuery(select).toArray().indexOf(target) < 0) return false;
+    if (WPFH._defaultValueKey in target) {
+      original = target[WPFH._defaultValueKey];
+    } else {
+      original = target.dataset[WPFH._defaultValueKey];
+    }
+    if (original !== WPFH._dirtyFieldValue(target)) {
+      if (!WPFH._modifiedInputs.has(target)) {
+        WPFH._modifiedInputs.add(target);
+      }
+    } else if (WPFH._modifiedInputs.has(target)) {
+      WPFH._modifiedInputs.delete(target);
+    }
+  });
+  // clear modified inputs upon form submission
+  addEventListener("submit", () => {
+    WPFH.resetDirtyFields();
+    // to prevent the warning from happening, it is advisable
+    // that you clear your form controls back to their default
+    // state with form.reset() after submission
+  });
+  WPFH.resetDirtyFields();
+};
+
+WPFH._confirm = function (text){
+  return new Promise(function(resolve, reject){
+    if(confirm(text)) resolve(true);
+    return resolve(false);
+  });
+};
+
+WPFH.maybeConfirmDirtyFields = function (text){
+  if(!text) text = WPFH._dirtyFieldsPrompt;
+  return new Promise(function(resolve, reject){
+    if (WPFH.hasDirtyFields()) {
+      resolve(WPFH._confirm(text));
+    }else{
+      resolve(true);
+    }
+  });
+};
+
+// store default values
+WPFH.addConfirmToExit = function(select){
+  WPFH.addDirtyFieldTracking(select);
+  // warn before closing if any inputs are modified
+  addEventListener("beforeunload", (evt) => {
+    if (WPFH.hasDirtyFields()) {
+      evt.returnValue = WPFH._dirtyFieldsPrompt;
+      return WPFH._dirtyFieldsPrompt;
+    }
+  });
+};
+
+
+
+
 
 jQuery(WPFH.baseInit);
