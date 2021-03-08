@@ -188,7 +188,7 @@ WPFH.bindOne = function(inp, v, k){
   }
   else if(inp.is('[type=datetime-local]')){
     if(v)try{
-      v = v && WPFH.isodatetime(v);
+      v = v && WPFH.isodatetime(v, true); // make sure we have a T
     }catch(e){ console.log('Couldnt handle date: ', v); }
     inp.val(v);
   }
