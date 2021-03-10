@@ -673,13 +673,13 @@ WPFH.simpleDataCheck = function simpleDataCheck(action, data, used=null, key=nul
   }
   else if(Array.isArray(data)){
     for(var item of data){
-      WPFH.simpleDataCheck(action, item, used.concat([data]), key, depthLimit--);
+      WPFH.simpleDataCheck(action, item, used.concat([data]), key, depthLimit-1);
     }
   }
   else if(typeof(data) == 'object'){
     for (const key in data) {
       if (Object.prototype.hasOwnProperty.call(data, key)){
-        WPFH.simpleDataCheck(action, data[key], used.concat([data]), key, depthLimit--);
+        WPFH.simpleDataCheck(action, data[key], used.concat([data]), key, depthLimit-1);
       }
     }
   }else {
