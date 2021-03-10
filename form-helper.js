@@ -657,5 +657,40 @@ WPFH._confirm = function (text){
   });
 };
 
+WPFH.simpleDataCheck = function simpleDataCheck(action, data, used=null, key=null, depthLimit=10){
+  //console.log('Checking a:', action, 'd:', data , 'u:', used, 'k:', key, 'depth:', depthLimit);
+  if(!used) used=[];
+  if(depthLimit < 0){
+    throw new Error("Data type is too deep to send, please simplify. action:"+action);
+  }
+  if(used.indexOf(data) >= 0){
+    console.log(data, "\n used:", used);
+    throw new Error("Cant send recursive data, please simplify. key:"+key +" - action:"+action);
+  }
+  if(!data){
+    //console.log('Data is false/null, so return');
+    return true;
+  }
+  else if(Array.isArray(data)){
+    for(var item of data){
+      WPFH.simpleDataCheck(action, item, used.concat([data]), key, depthLimit--);
+    }
+  }
+  else if(typeof(data) == 'object'){
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)){
+        WPFH.simpleDataCheck(action, data[key], used.concat([data]), key, depthLimit--);
+      }
+    }
+  }else {
+    //console.log('Data is neither object nor array', data);
+  }
+  return true;
+};
+WPFH.simpleDataCheck.doc = "We need to verify that the data we send is actually serializable"+
+  "  Action is indended to be documentation for the error, of what we were trying to do "+
+  "(eg: ajax url we were serializing for)";
+
+
 
 jQuery(WPFH.baseInit);
