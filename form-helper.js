@@ -183,7 +183,7 @@ WPFH.bindOne = function(inp, v, k){
     if(v)try{
       v = v && WPFH.isodate(v);
     }catch(e){ console.log('Couldnt handle date: ', v); }
-    console.log("Binding ", inp, v, k, vin);
+    // console.log("Binding ", inp, v, k, vin);
     inp.val(v);
   }
   else if(inp.is('[type=datetime-local]')){
